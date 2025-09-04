@@ -1,0 +1,26 @@
+{
+  "name": "ai-website-generator-app",
+  "version": "1.0.0",
+  "description": "AI Website Generator with automatic startup and web interface",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "app": "node app.js"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "ai",
+    "website-generator",
+    "automatic-startup",
+    "web-interface"
+  ],
+  "author": "AI Website Generator Team",
+  "license": "MIT"
+}
