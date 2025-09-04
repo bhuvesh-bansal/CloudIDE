@@ -8,7 +8,7 @@ console.log('Dependencies loaded...');
 
 // Initialize OpenAI
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE'
+    apiKey: process.env.OPENAI_API_KEY
 });
 
 // Simple in-memory cache
