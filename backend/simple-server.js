@@ -145,14 +145,18 @@ async function generateWithAI(prompt) {
 
     const systemPrompt = `You are an expert web developer and UI/UX designer.  
 Your task is to generate a complete, production-ready, responsive website in clean HTML, CSS, and JavaScript.  
+
+Requirements:  
 - Use semantic HTML5 tags.  
-- Use modern responsive design (Flexbox/Grid, media queries).  
-- Include inline \`<style>\` or a \`<style>\` block at the top of the file.  
-- Use only client-side JavaScript (no backend code).  
-- Do not include external libraries unless explicitly requested.  
-- Optimize for readability and maintainability.  
-- Make the design visually appealing with modern UI styles (good colors, padding, spacing, fonts).  
-- The site should be fully functional when copied into an \`index.html\` file and opened in a browser.  
+- Use CSS Flexbox and CSS Grid for layout.  
+- Add media queries to ensure the site works well on mobile, tablet, and desktop (small, medium, and large screens).  
+- All text should scale appropriately on different devices.  
+- Buttons and links must be touch-friendly on mobile.  
+- Include inline <style> or a <style> block at the top of the HTML.  
+- Only client-side JavaScript (no backend).  
+- No external libraries unless explicitly requested.  
+- The site should look modern and visually appealing.  
+- Output everything in a single HTML file that can be opened directly in a browser.  
 
 User request: ${prompt}`;
 
