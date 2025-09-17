@@ -106,6 +106,83 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .generation-options {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .fallback-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
 
         .generate-btn {
@@ -313,9 +390,16 @@ Examples:
                             <i class="fas fa-magic"></i>
                             Generate Website
                         </button>
+                        <div class="generation-options">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="aiToggle" checked>
+                                <span class="slider"></span>
+                                <span class="toggle-label">Use AI</span>
+                            </label>
+                        </div>
                         <div class="status-indicator">
                             <div class="status-dot"></div>
-                            <span>Ready</span>
+                            <span id="statusIndicator">Ready</span>
                         </div>
                     </div>
                     
@@ -365,6 +449,30 @@ Examples:
 
     <script>
         let currentWebsite = null;
+        let serverCapabilities = null;
+
+        // Check server capabilities on load
+        async function checkServerCapabilities() {
+            try {
+                const response = await fetch('/health');
+                const health = await response.json();
+                serverCapabilities = health;
+                
+                const aiToggle = document.getElementById('aiToggle');
+                const statusIndicator = document.getElementById('statusIndicator');
+                
+                if (health.openai && health.openai.available) {
+                    statusIndicator.innerHTML = 'Ready <span class="ai-badge">AI Available</span>';
+                    aiToggle.disabled = false;
+                } else {
+                    statusIndicator.innerHTML = 'Ready <span class="fallback-badge">Templates Only</span>';
+                    aiToggle.checked = false;
+                    aiToggle.disabled = true;
+                }
+            } catch (error) {
+                console.log('Could not check server capabilities');
+            }
+        }
 
         function setPrompt(text) {
             document.getElementById('promptInput').value = text;
@@ -375,11 +483,22 @@ Examples:
             document.getElementById('previewPlaceholder').style.display = 'none';
             document.getElementById('previewFrame').style.display = 'none';
             document.getElementById('loadingIndicator').style.display = 'block';
-            document.getElementById('statusText').textContent = 'Generating website...';
+            
+            const useAI = document.getElementById('aiToggle').checked;
+            const loadingText = useAI && serverCapabilities?.openai?.available 
+                ? 'Generating with AI...' 
+                : 'Generating from templates...';
+            
+            document.getElementById('loadingIndicator').innerHTML = `
+                <i class="fas fa-spinner"></i>
+                <p>${loadingText}</p>
+            `;
+            
+            document.getElementById('statusText').textContent = loadingText;
             document.querySelector('.status-dot').style.background = '#ffc107';
         }
 
-        function showPreview(html) {
+        function showPreview(html, result) {
             document.getElementById('loadingIndicator').style.display = 'none';
             document.getElementById('previewPlaceholder').style.display = 'none';
             
@@ -387,7 +506,12 @@ Examples:
             iframe.style.display = 'block';
             iframe.srcdoc = html;
             
-            document.getElementById('statusText').textContent = 'Website generated successfully';
+            const generationMethod = result.aiGenerated ? 'AI' : 'Template';
+            const badge = result.aiGenerated 
+                ? '<span class="ai-badge">AI Generated</span>' 
+                : '<span class="fallback-badge">Template</span>';
+                
+            document.getElementById('statusText').innerHTML = `Generated successfully ${badge}`;
             document.querySelector('.status-dot').style.background = '#28a745';
             document.getElementById('downloadBtn').style.display = 'block';
         }
@@ -412,7 +536,9 @@ Examples:
                 return;
             }
 
+            const useAI = document.getElementById('aiToggle').checked;
             const generateBtn = document.getElementById('generateBtn');
+            
             generateBtn.disabled = true;
             generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
             
@@ -424,7 +550,10 @@ Examples:
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ prompt: prompt })
+                    body: JSON.stringify({ 
+                        prompt: prompt,
+                        useAI: useAI 
+                    })
                 });
 
                 if (!response.ok) {
@@ -433,7 +562,7 @@ Examples:
 
                 const result = await response.json();
                 currentWebsite = result;
-                showPreview(result.html);
+                showPreview(result.html, result);
 
             } catch (error) {
                 console.error('Generation error:', error);
@@ -458,9 +587,27 @@ Examples:
             URL.revokeObjectURL(url);
         }
 
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerCapabilities();
+        });
+
         // Event listeners
         document.getElementById('generateBtn').addEventListener('click', generateWebsite);
         document.getElementById('downloadBtn').addEventListener('click', downloadHTML);
+
+        // AI toggle change handler
+        document.getElementById('aiToggle').addEventListener('change', function() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const isChecked = this.checked;
+            const hasAI = serverCapabilities?.openai?.available;
+            
+            if (isChecked && hasAI) {
+                statusIndicator.innerHTML = 'Ready <span class="ai-badge">AI Mode</span>';
+            } else {
+                statusIndicator.innerHTML = 'Ready <span class="fallback-badge">Template Mode</span>';
+            }
+        });
 
         // Allow Enter key to generate (with Ctrl/Cmd)
         document.getElementById('promptInput').addEventListener('keydown', function(e) {
