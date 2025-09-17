@@ -485,16 +485,36 @@ Examples:
             document.getElementById('loadingIndicator').style.display = 'block';
             
             const useAI = document.getElementById('aiToggle').checked;
-            const loadingText = useAI && serverCapabilities?.openai?.available 
-                ? 'Generating with AI...' 
-                : 'Generating from templates...';
+            const hasAI = serverCapabilities?.openai?.available;
             
-            document.getElementById('loadingIndicator').innerHTML = `
-                <i class="fas fa-spinner"></i>
-                <p>${loadingText}</p>
-            `;
+            if (useAI && hasAI) {
+                // Show two-step AI process
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <i class="fas fa-spinner"></i>
+                    <p>Step 1: Optimizing your prompt...</p>
+                    <small style="opacity: 0.8;">AI is enhancing your request for better results</small>
+                `;
+                document.getElementById('statusText').textContent = 'Optimizing prompt...';
+                
+                // After 2 seconds, show step 2
+                setTimeout(() => {
+                    if (document.getElementById('loadingIndicator').style.display === 'block') {
+                        document.getElementById('loadingIndicator').innerHTML = `
+                            <i class="fas fa-spinner"></i>
+                            <p>Step 2: Generating your website...</p>
+                            <small style="opacity: 0.8;">Creating custom design based on optimized prompt</small>
+                        `;
+                        document.getElementById('statusText').textContent = 'Generating with AI...';
+                    }
+                }, 2000);
+            } else {
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <i class="fas fa-spinner"></i>
+                    <p>Generating from templates...</p>
+                `;
+                document.getElementById('statusText').textContent = 'Generating from templates...';
+            }
             
-            document.getElementById('statusText').textContent = loadingText;
             document.querySelector('.status-dot').style.background = '#ffc107';
         }
 
@@ -506,14 +526,30 @@ Examples:
             iframe.style.display = 'block';
             iframe.srcdoc = html;
             
-            const generationMethod = result.aiGenerated ? 'AI' : 'Template';
-            const badge = result.aiGenerated 
-                ? '<span class="ai-badge">AI Generated</span>' 
-                : '<span class="fallback-badge">Template</span>';
+            let badge, statusText;
+            if (result.aiGenerated) {
+                if (result.source === 'openai-gpt3.5-optimized') {
+                    badge = '<span class="ai-badge">✨ AI Optimized</span>';
+                    statusText = 'Generated with prompt optimization';
+                } else {
+                    badge = '<span class="ai-badge">AI Generated</span>';
+                    statusText = 'Generated successfully';
+                }
+            } else {
+                badge = '<span class="fallback-badge">Template</span>';
+                statusText = 'Generated successfully';
+            }
                 
-            document.getElementById('statusText').innerHTML = `Generated successfully ${badge}`;
+            document.getElementById('statusText').innerHTML = `${statusText} ${badge}`;
             document.querySelector('.status-dot').style.background = '#28a745';
             document.getElementById('downloadBtn').style.display = 'block';
+            
+            // Show optimized prompt if available
+            if (result.optimizedPrompt && result.optimizedPrompt !== result.prompt) {
+                console.log('🎯 Prompt Optimization:');
+                console.log('Original:', result.prompt);
+                console.log('Optimized:', result.optimizedPrompt);
+            }
         }
 
         function showError(message) {

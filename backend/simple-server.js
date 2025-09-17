@@ -93,6 +93,40 @@ function detectIndustry(prompt) {
     }
 }
 
+// AI prompt optimization - makes user prompts better for website generation
+async function optimizePrompt(userPrompt) {
+    if (!openai) {
+        throw new Error('OpenAI not available');
+    }
+
+    const optimizationPrompt = `You are an expert at creating detailed, specific prompts for website generation. 
+
+Take the user's basic prompt and enhance it with:
+- Specific industry details
+- Color scheme suggestions
+- Layout preferences
+- Key features that should be included
+- Target audience considerations
+- Modern web design trends
+
+User's original prompt: "${userPrompt}"
+
+Create an enhanced, detailed prompt that will generate a much better website. Be specific about colors, style, features, and content.
+
+Return ONLY the optimized prompt, no explanations.`;
+
+    const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+            { role: "user", content: optimizationPrompt }
+        ],
+        max_tokens: 200,
+        temperature: 0.7
+    });
+
+    return completion.choices[0].message.content.trim();
+}
+
 // AI-powered website generation
 async function generateWithAI(prompt) {
     if (!openai) {
@@ -523,8 +557,13 @@ app.post('/api/generate', async (req, res) => {
         // Try AI generation first (if available and requested)
         if (useAI && hasOpenAI && openai) {
             try {
-                console.log('🤖 Attempting AI generation...');
-                const aiHtml = await generateWithAI(prompt);
+                console.log('🤖 Step 1: Optimizing user prompt...');
+                const optimizedPrompt = await optimizePrompt(prompt);
+                console.log(`📝 Original: "${prompt}"`);
+                console.log(`✨ Optimized: "${optimizedPrompt}"`);
+                
+                console.log('🤖 Step 2: Generating website with optimized prompt...');
+                const aiHtml = await generateWithAI(optimizedPrompt);
                 
                 // Extract title from AI-generated HTML (simple regex)
                 const titleMatch = aiHtml.match(/<title>(.*?)<\/title>/i);
@@ -533,17 +572,18 @@ app.post('/api/generate', async (req, res) => {
                 result = {
                     id: Date.now().toString(),
                     title: aiTitle,
-                    description: `AI-generated website based on: ${prompt}`,
+                    description: `AI-generated website based on optimized prompt`,
                     industry: detectIndustry(prompt),
                     html: aiHtml,
                     timestamp: new Date().toISOString(),
-                    source: 'openai-gpt3.5',
+                    source: 'openai-gpt3.5-optimized',
                     prompt: prompt,
+                    optimizedPrompt: optimizedPrompt,
                     aiGenerated: true
                 };
                 
-                generationSource = 'AI';
-                console.log(`✅ AI generated website: ${aiTitle}`);
+                generationSource = 'AI-Optimized';
+                console.log(`✅ AI generated optimized website: ${aiTitle}`);
                 
             } catch (aiError) {
                 console.log('⚠️ AI generation failed, falling back to templates:', aiError.message);
