@@ -769,6 +769,17 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
+// Simple test endpoint for iOS debugging
+app.get('/api/test', (req, res) => {
+    res.json({
+        success: true,
+        message: 'CloudIDE API is working!',
+        timestamp: new Date().toISOString(),
+        server: 'Render.com',
+        features: ['AI Generation', 'Template Fallback', 'Prompt Optimization']
+    });
+});
+
 // Test OpenAI API directly
 app.get('/api/test-openai', async (req, res) => {
     try {

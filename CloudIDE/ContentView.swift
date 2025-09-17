@@ -49,7 +49,7 @@ struct ContentView: View {
                             isPreviewCollapsed.toggle()
                         }
                     }) {
-                        Image(systemName: isPreviewCollapsed ? "rectangle.expand.vertical" : "rectangle.compress.vertical")
+                        Image(systemName: isPreviewCollapsed ? "rectangle.expand.horizontal" : "rectangle.compress.horizontal")
                             .foregroundColor(.blue)
                     }
                 }

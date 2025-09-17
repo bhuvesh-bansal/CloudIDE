@@ -132,13 +132,14 @@ struct ChatView: View {
                 await MainActor.run {
                     let errorMessage = ChatMessage(
                         id: UUID().uuidString,
-                        text: "Sorry, I couldn't generate the website. Please try again.",
+                        text: "Connection error: \(error.localizedDescription). Check your internet connection or try again.",
                         isUser: false,
                         timestamp: Date()
                     )
                     messages.append(errorMessage)
                     isLoading = false
                 }
+                print("🔍 iOS App Error Details: \(error)")
             }
         }
     }

@@ -39,6 +39,30 @@ class APIService: ObservableObject {
         }
     }
     
+    func testConnection() async throws -> Bool {
+        guard let url = URL(string: "\(baseURL)/test") else {
+            throw APIError.invalidURL
+        }
+        
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(httpResponse.statusCode)
+        }
+        
+        // Try to decode the test response
+        do {
+            let testResponse = try JSONDecoder().decode([String: Any].self, from: data)
+            return true
+        } catch {
+            return false
+        }
+    }
+    
     func fetchWebsites() async throws -> [Website] {
         guard let url = URL(string: "\(baseURL)/websites") else {
             throw APIError.invalidURL

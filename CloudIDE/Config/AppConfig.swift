@@ -6,7 +6,7 @@ struct AppConfig {
     static let productionBaseURL = "https://cloudide-m5m8.onrender.com/api" // Live Render deployment
     
     // MARK: - Environment
-    static let isDevelopment = true // Set to false for production
+    static let isDevelopment = false // Using live Render deployment
     
     // MARK: - Computed Properties
     static var baseURL: String {
