@@ -488,29 +488,16 @@ Examples:
             const hasAI = serverCapabilities?.openai?.available;
             
             if (useAI && hasAI) {
-                // Show two-step AI process
                 document.getElementById('loadingIndicator').innerHTML = `
                     <i class="fas fa-spinner"></i>
-                    <p>Step 1: Optimizing your prompt...</p>
-                    <small style="opacity: 0.8;">AI is enhancing your request for better results</small>
+                    <p>AI is creating your custom website...</p>
+                    <small style="opacity: 0.8;">Generating production-ready code tailored to your needs</small>
                 `;
-                document.getElementById('statusText').textContent = 'Optimizing prompt...';
-                
-                // After 2 seconds, show step 2
-                setTimeout(() => {
-                    if (document.getElementById('loadingIndicator').style.display === 'block') {
-                        document.getElementById('loadingIndicator').innerHTML = `
-                            <i class="fas fa-spinner"></i>
-                            <p>Step 2: Generating your website...</p>
-                            <small style="opacity: 0.8;">Creating custom design based on optimized prompt</small>
-                        `;
-                        document.getElementById('statusText').textContent = 'Generating with AI...';
-                    }
-                }, 2000);
+                document.getElementById('statusText').textContent = 'Generating with AI...';
             } else {
                 document.getElementById('loadingIndicator').innerHTML = `
                     <i class="fas fa-spinner"></i>
-                    <p>Generating from templates...</p>
+                    <p>Generating from professional templates...</p>
                 `;
                 document.getElementById('statusText').textContent = 'Generating from templates...';
             }
@@ -528,28 +515,18 @@ Examples:
             
             let badge, statusText;
             if (result.aiGenerated) {
-                if (result.source === 'openai-gpt3.5-optimized') {
-                    badge = '<span class="ai-badge">✨ AI Optimized</span>';
-                    statusText = 'Generated with prompt optimization';
-                } else {
-                    badge = '<span class="ai-badge">AI Generated</span>';
-                    statusText = 'Generated successfully';
-                }
+                badge = '<span class="ai-badge">🤖 AI Generated</span>';
+                statusText = 'Custom website created';
             } else {
-                badge = '<span class="fallback-badge">Template</span>';
-                statusText = 'Generated successfully';
+                badge = result.customized 
+                    ? '<span class="fallback-badge">📋 Smart Template</span>'
+                    : '<span class="fallback-badge">📋 Template</span>';
+                statusText = 'Professional website generated';
             }
                 
             document.getElementById('statusText').innerHTML = `${statusText} ${badge}`;
             document.querySelector('.status-dot').style.background = '#28a745';
             document.getElementById('downloadBtn').style.display = 'block';
-            
-            // Show optimized prompt if available
-            if (result.optimizedPrompt && result.optimizedPrompt !== result.prompt) {
-                console.log('🎯 Prompt Optimization:');
-                console.log('Original:', result.prompt);
-                console.log('Optimized:', result.optimizedPrompt);
-            }
         }
 
         function showError(message) {

@@ -137,117 +137,29 @@ function generateCustomizedTemplate(prompt, template) {
     };
 }
 
-// AI prompt optimization - makes user prompts better for website generation
-async function optimizePrompt(userPrompt) {
-    if (!openai) {
-        throw new Error('OpenAI not available');
-    }
-
-    const optimizationPrompt = `You are a world-class web design consultant and UX expert with 15+ years of experience creating award-winning websites. Your specialty is transforming basic ideas into compelling, user-focused website specifications that deliver exceptional results.
-
-MISSION: Transform the user's basic request into a comprehensive, professional website brief that will create exactly what they envision - and more.
-
-USER'S REQUEST: "${userPrompt}"
-
-ENHANCEMENT FRAMEWORK:
-1. BUSINESS IDENTITY: Create a memorable brand name and compelling value proposition
-2. VISUAL DESIGN: Specify professional color palettes, typography, and modern aesthetic choices
-3. USER EXPERIENCE: Define intuitive navigation, engaging interactions, and conversion-focused layouts  
-4. CONTENT STRATEGY: Outline compelling copy, calls-to-action, and trust-building elements
-5. FUNCTIONALITY: Include essential features that users expect and love
-6. TARGET AUDIENCE: Define primary users and their specific needs/pain points
-7. COMPETITIVE ADVANTAGE: What makes this website stand out and convert visitors
-8. TECHNICAL EXCELLENCE: Modern web standards, mobile-first, fast loading, accessible
-
-OPTIMIZATION GOALS:
-- Make users say "This is exactly what I wanted!"
-- Ensure professional credibility and trustworthiness
-- Maximize user engagement and conversion potential
-- Create memorable, shareable experiences
-- Future-proof with scalable design systems
-
-OUTPUT FORMAT: Provide a detailed, actionable website specification that reads like a premium design agency brief. Be specific about colors (hex codes when relevant), fonts, layouts, features, and user flows.
-
-TONE: Professional, confident, and results-oriented - like you're presenting to a Fortune 500 client.
-
-Return ONLY the enhanced specification, no meta-commentary.`;
-
-    const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-            { role: "user", content: optimizationPrompt }
-        ],
-        max_tokens: 200,
-        temperature: 0.7
-    });
-
-    return completion.choices[0].message.content.trim();
-}
-
-// AI-powered website generation
+// Direct AI website generation with single optimized prompt
 async function generateWithAI(prompt) {
     if (!openai) {
         throw new Error('OpenAI not available');
     }
 
-    const systemPrompt = `You are a senior full-stack developer and award-winning web designer who has created websites for Fortune 500 companies. Your websites consistently achieve 95%+ user satisfaction and high conversion rates.
+    const systemPrompt = `You are an expert web developer and UI/UX designer.  
+Your task is to generate a complete, production-ready, responsive website in clean HTML, CSS, and JavaScript.  
+- Use semantic HTML5 tags.  
+- Use modern responsive design (Flexbox/Grid, media queries).  
+- Include inline \`<style>\` or a \`<style>\` block at the top of the file.  
+- Use only client-side JavaScript (no backend code).  
+- Do not include external libraries unless explicitly requested.  
+- Optimize for readability and maintainability.  
+- Make the design visually appealing with modern UI styles (good colors, padding, spacing, fonts).  
+- The site should be fully functional when copied into an \`index.html\` file and opened in a browser.  
 
-MISSION: Create a stunning, professional website that exceeds user expectations and delivers measurable business results.
-
-DEVELOPMENT STANDARDS:
-- HTML5 semantic structure with perfect accessibility (WCAG 2.1 AA)
-- CSS3 with modern features (Grid, Flexbox, custom properties, animations)
-- Vanilla JavaScript for interactions (smooth, performant, no frameworks needed)
-- Mobile-first responsive design that looks perfect on all devices
-- Professional typography hierarchy and readable font combinations
-- Optimized color psychology for the target industry and audience
-- Micro-interactions and subtle animations that enhance UX
-- Fast loading performance (<3 seconds) with optimized assets
-
-VISUAL EXCELLENCE:
-- Use sophisticated color palettes with proper contrast ratios
-- Implement modern design trends (glassmorphism, subtle gradients, clean spacing)
-- Include Font Awesome icons from CDN: https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css
-- Add tasteful hover effects, smooth transitions, and polished interactions
-- Create visual hierarchy that guides users to key actions
-- Use white space effectively for premium, uncluttered appearance
-
-CONTENT STRATEGY:
-- Write compelling, benefit-focused copy that resonates with target audience
-- Include strong calls-to-action that drive conversions
-- Add social proof elements (testimonials, stats, trust indicators)
-- Create scannable content with clear headings and bullet points
-- Incorporate industry-specific terminology and credibility markers
-
-REQUIRED SECTIONS:
-1. Hero section with compelling headline and clear value proposition
-2. Features/Services section showcasing key offerings
-3. About section building trust and credibility
-4. Social proof/testimonials section
-5. Contact/CTA section with clear next steps
-6. Professional footer with all necessary links
-
-TECHNICAL REQUIREMENTS:
-- Production-ready code with clean, commented structure
-- Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
-- SEO-friendly markup with proper meta tags and schema
-- Form validation and user feedback for interactions
-- Smooth scroll behavior and modern CSS features
-- Add discrete "Powered by CloudIDE" badge in footer
-
-QUALITY ASSURANCE:
-- Every element should serve a purpose and enhance user experience
-- Test all interactive elements work smoothly
-- Ensure content is engaging, professional, and conversion-focused
-- Verify mobile experience is flawless and touch-friendly
-
-Return ONLY the complete HTML document with embedded CSS and JavaScript. No explanations, comments, or markdown formatting.`;
+User request: ${prompt}`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt }
+            { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000,
         temperature: 0.7
@@ -651,16 +563,12 @@ app.post('/api/generate', async (req, res) => {
         // Try AI generation first (if available and requested)
         if (useAI && hasOpenAI && openai) {
             try {
-                console.log('🤖 Step 1: Optimizing user prompt...');
+                console.log('🤖 Generating website with AI...');
                 console.log('🔑 API Key available:', !!process.env.OPENAI_API_KEY);
                 console.log('🔑 API Key preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 15) + '...' : 'NONE');
+                console.log(`📝 User prompt: "${prompt}"`);
                 
-                const optimizedPrompt = await optimizePrompt(prompt);
-                console.log(`📝 Original: "${prompt}"`);
-                console.log(`✨ Optimized: "${optimizedPrompt}"`);
-                
-                console.log('🤖 Step 2: Generating website with optimized prompt...');
-                const aiHtml = await generateWithAI(optimizedPrompt);
+                const aiHtml = await generateWithAI(prompt);
                 
                 // Extract title from AI-generated HTML (simple regex)
                 const titleMatch = aiHtml.match(/<title>(.*?)<\/title>/i);
@@ -669,18 +577,17 @@ app.post('/api/generate', async (req, res) => {
                 result = {
                     id: Date.now().toString(),
                     title: aiTitle,
-                    description: `AI-generated website based on optimized prompt`,
+                    description: `AI-generated website based on: ${prompt}`,
                     industry: detectIndustry(prompt),
                     html: aiHtml,
                     timestamp: new Date().toISOString(),
-                    source: 'openai-gpt3.5-optimized',
+                    source: 'openai-gpt3.5',
                     prompt: prompt,
-                    optimizedPrompt: optimizedPrompt,
                     aiGenerated: true
                 };
                 
-                generationSource = 'AI-Optimized';
-                console.log(`✅ AI generated optimized website: ${aiTitle}`);
+                generationSource = 'AI';
+                console.log(`✅ AI generated website: ${aiTitle}`);
                 
             } catch (aiError) {
                 console.log('⚠️ AI generation failed, falling back to templates:', aiError.message);
