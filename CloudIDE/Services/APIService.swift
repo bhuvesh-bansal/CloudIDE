@@ -54,13 +54,8 @@ class APIService: ObservableObject {
             throw APIError.serverError(httpResponse.statusCode)
         }
         
-        // Try to decode the test response
-        do {
-            let testResponse = try JSONDecoder().decode([String: Any].self, from: data)
-            return true
-        } catch {
-            return false
-        }
+        // Simple check - if we get data and 200 status, connection is working
+        return data.count > 0
     }
     
     func fetchWebsites() async throws -> [Website] {
