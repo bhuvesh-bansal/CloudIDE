@@ -104,14 +104,20 @@ struct ChatView: View {
                 
                 let website = Website(
                     id: response.id,
-                    prompt: prompt,
+                    title: response.title,
+                    prompt: response.prompt,
                     html: response.html,
-                    createdAt: ISO8601DateFormatter().string(from: Date())
+                    timestamp: response.timestamp,
+                    description: response.description,
+                    industry: response.industry,
+                    source: response.source,
+                    aiGenerated: response.aiGenerated,
+                    optimizedPrompt: response.optimizedPrompt
                 )
                 
                 let assistantMessage = ChatMessage(
                     id: UUID().uuidString,
-                    text: "I've generated a website based on your request: \"\(prompt)\"",
+                    text: "I've generated \(response.displayTitle) based on your request. \(response.isAIGenerated ? "✨ AI-optimized" : "📋 Template-based") generation completed!",
                     isUser: false,
                     timestamp: Date()
                 )

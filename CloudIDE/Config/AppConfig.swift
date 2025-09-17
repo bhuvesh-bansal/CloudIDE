@@ -3,7 +3,7 @@ import Foundation
 struct AppConfig {
     // MARK: - API Configuration
     static let localBaseURL = "http://localhost:3000/api"
-    static let productionBaseURL = "https://your-deployed-backend-url.com/api" // Update this with your deployed URL
+    static let productionBaseURL = "https://backend-jbgfshexv-bhuveshbansals-projects.vercel.app/api" // Your latest Vercel deployment
     
     // MARK: - Environment
     static let isDevelopment = true // Set to false for production

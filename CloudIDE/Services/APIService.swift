@@ -6,12 +6,12 @@ class APIService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    func generateWebsite(prompt: String) async throws -> GenerateResponse {
+    func generateWebsite(prompt: String, useAI: Bool = true) async throws -> GenerateResponse {
         guard let url = URL(string: "\(baseURL)/generate") else {
             throw APIError.invalidURL
         }
         
-        let request = GenerateRequest(prompt: prompt)
+        let request = GenerateRequest(prompt: prompt, useAI: useAI)
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
