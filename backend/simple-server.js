@@ -14,9 +14,11 @@ const hasOpenAI = !!process.env.OPENAI_API_KEY;
 if (hasOpenAI) {
     try {
         openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
+            apiKey: process.env.OPENAI_API_KEY,
+            timeout: 30000, // 30 second timeout
+            maxRetries: 3    // Retry failed requests
         });
-        console.log('✅ OpenAI API initialized');
+        console.log('✅ OpenAI API initialized with extended timeout');
     } catch (error) {
         console.log('⚠️ OpenAI initialization failed:', error.message);
     }
@@ -78,19 +80,61 @@ const templates = {
 function detectIndustry(prompt) {
     const lowerPrompt = prompt.toLowerCase();
     
-    if (lowerPrompt.includes('tech') || lowerPrompt.includes('startup') || lowerPrompt.includes('software') || lowerPrompt.includes('ai') || lowerPrompt.includes('digital')) {
+    // More comprehensive industry detection
+    if (lowerPrompt.includes('tech') || lowerPrompt.includes('startup') || lowerPrompt.includes('software') || lowerPrompt.includes('ai') || lowerPrompt.includes('digital') || lowerPrompt.includes('app') || lowerPrompt.includes('saas')) {
         return 'technology';
-    } else if (lowerPrompt.includes('restaurant') || lowerPrompt.includes('food') || lowerPrompt.includes('cafe') || lowerPrompt.includes('dining')) {
+    } else if (lowerPrompt.includes('restaurant') || lowerPrompt.includes('food') || lowerPrompt.includes('cafe') || lowerPrompt.includes('dining') || lowerPrompt.includes('pizza') || lowerPrompt.includes('bakery') || lowerPrompt.includes('bar')) {
         return 'restaurant';
-    } else if (lowerPrompt.includes('health') || lowerPrompt.includes('medical') || lowerPrompt.includes('doctor') || lowerPrompt.includes('clinic')) {
+    } else if (lowerPrompt.includes('health') || lowerPrompt.includes('medical') || lowerPrompt.includes('doctor') || lowerPrompt.includes('clinic') || lowerPrompt.includes('hospital') || lowerPrompt.includes('dental')) {
         return 'healthcare';
-    } else if (lowerPrompt.includes('education') || lowerPrompt.includes('school') || lowerPrompt.includes('learning') || lowerPrompt.includes('course')) {
+    } else if (lowerPrompt.includes('education') || lowerPrompt.includes('school') || lowerPrompt.includes('learning') || lowerPrompt.includes('course') || lowerPrompt.includes('university') || lowerPrompt.includes('training')) {
         return 'education';
-    } else if (lowerPrompt.includes('portfolio') || lowerPrompt.includes('personal') || lowerPrompt.includes('creative') || lowerPrompt.includes('artist')) {
+    } else if (lowerPrompt.includes('portfolio') || lowerPrompt.includes('personal') || lowerPrompt.includes('creative') || lowerPrompt.includes('artist') || lowerPrompt.includes('photography') || lowerPrompt.includes('design')) {
         return 'portfolio';
+    } else if (lowerPrompt.includes('gym') || lowerPrompt.includes('fitness') || lowerPrompt.includes('workout') || lowerPrompt.includes('sports')) {
+        return 'fitness';
+    } else if (lowerPrompt.includes('shop') || lowerPrompt.includes('store') || lowerPrompt.includes('ecommerce') || lowerPrompt.includes('retail') || lowerPrompt.includes('buy') || lowerPrompt.includes('sell')) {
+        return 'ecommerce';
     } else {
         return 'business';
     }
+}
+
+// Enhanced template generation with prompt-specific customization
+function generateCustomizedTemplate(prompt, template) {
+    const lowerPrompt = prompt.toLowerCase();
+    let customTitle = template.title;
+    let customDescription = template.description;
+    
+    // Extract specific business names or themes from prompt
+    const words = prompt.split(' ').filter(word => word.length > 2);
+    const businessWords = words.filter(word => 
+        !['website', 'create', 'build', 'make', 'for', 'the', 'and', 'with'].includes(word.toLowerCase())
+    );
+    
+    // Generate more specific title if we can extract business type
+    if (businessWords.length > 0) {
+        const mainWord = businessWords[0];
+        const capitalizedWord = mainWord.charAt(0).toUpperCase() + mainWord.slice(1);
+        
+        if (lowerPrompt.includes('pizza')) customTitle = 'Artisan Pizza Co';
+        else if (lowerPrompt.includes('coffee')) customTitle = 'Coffee House Oasis';
+        else if (lowerPrompt.includes('bakery')) customTitle = 'Golden Crust Bakery';
+        else if (lowerPrompt.includes('gym')) customTitle = 'FitLife Fitness Studio';
+        else if (lowerPrompt.includes('dental')) customTitle = 'Bright Smile Dental';
+        else if (lowerPrompt.includes('photography')) customTitle = 'Lens & Light Photography';
+        else if (lowerPrompt.includes('law')) customTitle = 'Premier Legal Services';
+        else if (lowerPrompt.includes('salon')) customTitle = 'Luxe Beauty Salon';
+        else if (businessWords.length > 0) {
+            customTitle = capitalizedWord + ' ' + template.title.split(' ').slice(-1)[0];
+        }
+    }
+    
+    return {
+        ...template,
+        title: customTitle,
+        description: customDescription
+    };
 }
 
 // AI prompt optimization - makes user prompts better for website generation
@@ -558,6 +602,9 @@ app.post('/api/generate', async (req, res) => {
         if (useAI && hasOpenAI && openai) {
             try {
                 console.log('🤖 Step 1: Optimizing user prompt...');
+                console.log('🔑 API Key available:', !!process.env.OPENAI_API_KEY);
+                console.log('🔑 API Key preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 15) + '...' : 'NONE');
+                
                 const optimizedPrompt = await optimizePrompt(prompt);
                 console.log(`📝 Original: "${prompt}"`);
                 console.log(`✨ Optimized: "${optimizedPrompt}"`);
@@ -587,30 +634,33 @@ app.post('/api/generate', async (req, res) => {
                 
             } catch (aiError) {
                 console.log('⚠️ AI generation failed, falling back to templates:', aiError.message);
+                console.log('🔍 Error details:', aiError.stack || aiError);
                 // Fall through to template generation
             }
         }
         
         // Fallback to template generation if AI failed or not requested
         if (!result) {
-            console.log('📋 Using template generation...');
+            console.log('📋 Using enhanced template generation...');
             const industry = detectIndustry(prompt);
-            const template = templates[industry];
-            const html = generateWebsiteHTML(template, prompt);
+            const baseTemplate = templates[industry];
+            const customizedTemplate = generateCustomizedTemplate(prompt, baseTemplate);
+            const html = generateWebsiteHTML(customizedTemplate, prompt);
             
             result = {
                 id: Date.now().toString(),
-                title: template.title,
-                description: template.description,
+                title: customizedTemplate.title,
+                description: customizedTemplate.description,
                 industry: industry,
                 html: html,
                 timestamp: new Date().toISOString(),
-                source: 'cloudide-fallback',
+                source: 'cloudide-enhanced-fallback',
                 prompt: prompt,
-                aiGenerated: false
+                aiGenerated: false,
+                customized: true
             };
             
-            console.log(`✅ Template generated ${industry} website: ${template.title}`);
+            console.log(`✅ Enhanced template generated ${industry} website: ${customizedTemplate.title}`);
         }
         
         // Add generation method info
@@ -667,6 +717,44 @@ app.get('/api/stats', (req, res) => {
             'No setup required'
         ]
     });
+});
+
+// Test OpenAI API directly
+app.get('/api/test-openai', async (req, res) => {
+    try {
+        console.log('🧪 Testing OpenAI API directly...');
+        console.log('🔑 Has API Key:', !!process.env.OPENAI_API_KEY);
+        console.log('🔑 Key preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 15) + '...' : 'NONE');
+        
+        if (!openai) {
+            return res.json({
+                success: false,
+                error: 'OpenAI client not initialized',
+                hasApiKey: !!process.env.OPENAI_API_KEY
+            });
+        }
+
+        const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: 'Say "CloudIDE API test successful!"' }],
+            max_tokens: 20
+        });
+
+        res.json({
+            success: true,
+            response: response.choices[0].message.content,
+            hasApiKey: !!process.env.OPENAI_API_KEY,
+            model: 'gpt-3.5-turbo'
+        });
+
+    } catch (error) {
+        console.log('❌ OpenAI test failed:', error.message);
+        res.json({
+            success: false,
+            error: error.message,
+            hasApiKey: !!process.env.OPENAI_API_KEY
+        });
+    }
 });
 
 // Serve the main app
