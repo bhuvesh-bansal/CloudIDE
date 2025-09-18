@@ -225,12 +225,12 @@ Example output should be a complete website like this:
 Generate the complete website now with ALL code and content filled in.`;
 
     const completion = await openai.chat.completions.create({
-        model: "gpt-4", // Use GPT-4 for better code generation
+        model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
             { role: "user", content: systemPrompt }
         ],
-        max_tokens: 8192, // Much larger for comprehensive websites
-        temperature: 0.7   // Balanced creativity and accuracy
+        max_tokens: 4096, // Maximum for GPT-3.5-turbo
+        temperature: 0.8   // Higher creativity for better designs
     });
 
     return completion.choices[0].message.content;
@@ -631,12 +631,17 @@ app.post('/api/generate', async (req, res) => {
         // Try AI generation first (if available and requested)
         if (useAI && hasOpenAI && openai) {
             try {
-                console.log('🤖 Generating innovative website with AI + Online Research...');
+                console.log('🤖 ATTEMPTING AI GENERATION...');
                 console.log('🔑 API Key available:', !!process.env.OPENAI_API_KEY);
                 console.log('🔑 API Key preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 15) + '...' : 'NONE');
+                console.log('🔑 OpenAI client initialized:', !!openai);
+                console.log('🔑 HasOpenAI flag:', hasOpenAI);
                 console.log(`📝 User prompt: "${prompt}"`);
+                console.log('🎯 About to call generateWithAI...');
                 
                 const aiHtml = await generateWithAI(prompt);
+                
+                console.log('✅ AI generation completed, HTML length:', aiHtml ? aiHtml.length : 0);
                 
                 // Extract title from AI-generated HTML (simple regex)
                 const titleMatch = aiHtml.match(/<title>(.*?)<\/title>/i);
@@ -645,24 +650,33 @@ app.post('/api/generate', async (req, res) => {
                 result = {
                     id: Date.now().toString(),
                     title: aiTitle,
-                    description: `Innovative AI-generated website with online research: ${prompt}`,
+                    description: `Complete AI-generated website: ${prompt}`,
                     industry: detectIndustry(prompt),
                     html: aiHtml,
                     timestamp: new Date().toISOString(),
-                    source: 'openai-gpt3.5-enhanced',
+                    source: 'openai-gpt3.5-complete',
                     prompt: prompt,
                     aiGenerated: true,
                     hasOnlineResearch: true
                 };
                 
-                generationSource = 'AI-Enhanced';
-                console.log(`✅ AI generated innovative website: ${aiTitle}`);
+                generationSource = 'AI-Complete';
+                console.log(`🎉 SUCCESS: AI generated complete website: ${aiTitle}`);
                 
             } catch (aiError) {
-                console.log('⚠️ AI generation failed, falling back to templates:', aiError.message);
-                console.log('🔍 Error details:', aiError.stack || aiError);
+                console.log('❌ AI GENERATION FAILED - Details:');
+                console.log('   Error message:', aiError.message);
+                console.log('   Error type:', aiError.constructor.name);
+                console.log('   Error code:', aiError.code || 'N/A');
+                console.log('   Full error:', aiError);
+                console.log('⚠️ Falling back to enhanced templates...');
                 // Fall through to template generation
             }
+        } else {
+            console.log('❌ AI GENERATION SKIPPED:');
+            console.log('   useAI:', useAI);
+            console.log('   hasOpenAI:', hasOpenAI);
+            console.log('   openai client:', !!openai);
         }
         
         // Fallback to template generation if AI failed or not requested
