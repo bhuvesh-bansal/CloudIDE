@@ -120,10 +120,20 @@ struct Website: Codable, Identifiable, Equatable, Timestampable, Searchable, Fav
                (industry?.lowercased().contains(lowercaseSearch) ?? false)
     }
     
-    // Custom CodingKeys to handle timestamp mapping
-    enum CodingKeys: String, CodingKey {
-        case id, title, prompt, html, description, industry, source, aiGenerated, optimizedPrompt, isFavorite
-        case timestampString = "timestamp"
+   
+}
+
+// MARK: - Chat Message Model
+struct ChatMessage: Identifiable, Equatable {
+    let id: String
+    let text: String
+    let isUser: Bool
+    let timestamp: Date
+    
+    var timeString: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: timestamp)
     }
 }
 
