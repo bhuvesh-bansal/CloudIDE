@@ -178,225 +178,59 @@ async function generateWithAI(prompt) {
     const onlineInfo = await searchOnlineInfo(prompt);
     console.log('📊 Online info found:', onlineInfo.substring(0, 200) + '...');
 
-    const systemPrompt = `You must create a COMPLETE, PRODUCTION-READY website. Generate ALL the code - no shortcuts, no placeholders.
+    const systemPrompt = `Create a complete, professional website. NEVER use placeholders or incomplete code.
 
-BUSINESS: ${prompt}
-CONTEXT: ${onlineInfo}
+Build a full website for: ${prompt}
+Use this research: ${onlineInfo}
 
-REQUIREMENTS - GENERATE EVERYTHING:
+MANDATORY: Generate a complete HTML file with:
+- Complete CSS styling (minimum 100 lines)
+- Working JavaScript interactions (minimum 50 lines)  
+- Real business content (no placeholders like [add content])
+- Multiple sections: nav, hero, about, services, gallery, contact, footer
+- Responsive design with @media queries
+- Beautiful images from Unsplash
+- Font Awesome icons
+- Interactive features that actually work
 
-1. COMPLETE HTML STRUCTURE:
+Example output should be a complete website like this:
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[Create actual business name]</title>
+    <title>Actual Business Name</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* WRITE COMPLETE CSS - NO SHORTCUTS */
+        /* Complete CSS code here - minimum 100 lines */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        
-        /* Navigation */
-        .navbar { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 1000; padding: 1rem 0; }
-        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
-        .logo { font-size: 1.5rem; font-weight: bold; color: #333; }
-        .nav-links { display: flex; list-style: none; gap: 2rem; }
-        .nav-links a { text-decoration: none; color: #333; font-weight: 500; transition: color 0.3s; }
-        .nav-links a:hover { color: #007bff; }
-        
-        /* Hero Section */
-        .hero { height: 100vh; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://source.unsplash.com/1920x1080/?[business-type]'); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
-        .hero-content { max-width: 800px; padding: 2rem; }
-        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; animation: fadeInUp 1s ease; }
-        .hero p { font-size: 1.2rem; margin-bottom: 2rem; animation: fadeInUp 1s ease 0.2s both; }
-        .cta-button { background: #007bff; color: white; padding: 1rem 2rem; border: none; border-radius: 50px; font-size: 1.1rem; cursor: pointer; transition: transform 0.3s; animation: fadeInUp 1s ease 0.4s both; }
-        .cta-button:hover { transform: translateY(-2px); }
-        
-        /* Services Section */
-        .services { padding: 5rem 0; background: #f8f9fa; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; }
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        .service-card { background: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s; }
-        .service-card:hover { transform: translateY(-10px); }
-        .service-card i { font-size: 3rem; color: #007bff; margin-bottom: 1rem; }
-        
-        /* Gallery */
-        .gallery { padding: 5rem 0; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
-        .gallery-item { position: relative; overflow: hidden; border-radius: 10px; cursor: pointer; }
-        .gallery-item img { width: 100%; height: 250px; object-fit: cover; transition: transform 0.3s; }
-        .gallery-item:hover img { transform: scale(1.1); }
-        .overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; padding: 1rem; transform: translateY(100%); transition: transform 0.3s; }
-        .gallery-item:hover .overlay { transform: translateY(0); }
-        
-        /* Contact */
-        .contact { padding: 5rem 0; background: #f8f9fa; }
-        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
-        .contact-form { display: flex; flex-direction: column; gap: 1rem; }
-        .contact-form input, .contact-form textarea { padding: 1rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
-        .contact-form button { background: #007bff; color: white; padding: 1rem; border: none; border-radius: 5px; cursor: pointer; }
-        
-        /* Animations */
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .nav-links { display: none; }
-            .contact-grid { grid-template-columns: 1fr; }
-            .services-grid { grid-template-columns: 1fr; }
-        }
+        /* All styling for nav, hero, services, gallery, contact, responsive */
     </style>
 </head>
 <body>
-    <!-- WRITE ALL HTML CONTENT - NO PLACEHOLDERS -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">[Create actual business name]</div>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#gallery">Gallery</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>[Write compelling headline]</h1>
-            <p>[Write engaging description]</p>
-            <button class="cta-button">[Specific call to action]</button>
-        </div>
-    </section>
-
-    <section id="about" class="services">
-        <div class="container">
-            <h2 class="section-title">[About section title]</h2>
-            <p>[Complete about content with multiple paragraphs]</p>
-        </div>
-    </section>
-
-    <section id="services" class="services">
-        <div class="container">
-            <h2 class="section-title">[Services title]</h2>
-            <div class="services-grid">
-                <!-- CREATE 4-6 COMPLETE SERVICE CARDS -->
-                <div class="service-card">
-                    <i class="fas fa-[relevant-icon]"></i>
-                    <h3>[Service name]</h3>
-                    <p>[Detailed service description]</p>
-                </div>
-                <!-- REPEAT WITH DIFFERENT CONTENT -->
-            </div>
-        </div>
-    </section>
-
-    <section id="gallery" class="gallery">
-        <div class="container">
-            <h2 class="section-title">[Gallery title]</h2>
-            <div class="gallery-grid">
-                <!-- CREATE 8-12 GALLERY ITEMS WITH REAL IMAGES -->
-                <div class="gallery-item">
-                    <img src="https://source.unsplash.com/400x300/?[specific-keyword]" alt="[descriptive alt text]">
-                    <div class="overlay">
-                        <h4>[Project name]</h4>
-                        <p>[Project description]</p>
-                    </div>
-                </div>
-                <!-- REPEAT WITH DIFFERENT IMAGES AND CONTENT -->
-            </div>
-        </div>
-    </section>
-
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">Contact Us</h2>
-            <div class="contact-grid">
-                <form class="contact-form">
-                    <input type="text" placeholder="Your Name" required>
-                    <input type="email" placeholder="Email Address" required>
-                    <textarea placeholder="Your Message" rows="5" required></textarea>
-                    <button type="submit">Send Message</button>
-                </form>
-                <div class="contact-info">
-                    <h3>Get in Touch</h3>
-                    <p>[Contact information and details]</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
+    <!-- Complete HTML with all sections and real content -->
+    <nav><!-- Working navigation --></nav>
+    <section class="hero"><!-- Hero with real headline and description --></section>
+    <section class="services"><!-- Service cards with actual descriptions --></section>
+    <section class="gallery"><!-- Image gallery with real photos --></section>
+    <section class="contact"><!-- Working contact form --></section>
+    <footer><!-- Complete footer --></footer>
+    
     <script>
-        // WRITE COMPLETE JAVASCRIPT - NO SHORTCUTS
-        // Navigation functionality
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Gallery lightbox
-        const galleryItems = document.querySelectorAll('.gallery-item');
-        galleryItems.forEach(item => {
-            item.addEventListener('click', function() {
-                // Complete lightbox implementation
-                const img = this.querySelector('img');
-                const lightbox = document.createElement('div');
-                lightbox.className = 'lightbox';
-                lightbox.innerHTML = \`<img src="\${img.src}" alt="\${img.alt}"><span class="close">&times;</span>\`;
-                document.body.appendChild(lightbox);
-                
-                lightbox.querySelector('.close').addEventListener('click', () => {
-                    document.body.removeChild(lightbox);
-                });
-            });
-        });
-
-        // Form handling
-        document.querySelector('.contact-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for your message! We will get back to you soon.');
-            this.reset();
-        });
-
-        // Scroll animations
-        const observerOptions = { threshold: 0.1 };
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.service-card, .gallery-item').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s, transform 0.6s';
-            observer.observe(el);
-        });
+        /* Complete JavaScript - minimum 50 lines */
+        /* Working navigation, gallery, forms, animations */
     </script>
 </body>
 </html>
 
-CRITICAL: Fill in ALL content with actual business details. Create real service descriptions, actual contact information, compelling headlines, and detailed content. Make it a complete, professional website that could be used immediately.`;
+Generate the complete website now with ALL code and content filled in.`;
 
     const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4", // Use GPT-4 for better code generation
         messages: [
             { role: "user", content: systemPrompt }
         ],
-        max_tokens: 4096, // Maximum for comprehensive websites
-        temperature: 0.8   // Slightly higher for more creative designs
+        max_tokens: 8192, // Much larger for comprehensive websites
+        temperature: 0.7   // Balanced creativity and accuracy
     });
 
     return completion.choices[0].message.content;
