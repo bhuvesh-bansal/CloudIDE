@@ -27,7 +27,59 @@ struct Website: Codable, Identifiable, Equatable, Timestampable, Searchable, Fav
     let source: String?
     let aiGenerated: Bool?
     let optimizedPrompt: String?
-    var isFavorite: Bool = false
+    var isFavorite: Bool
+    
+    // MARK: - Initializers
+    init(id: String, title: String?, prompt: String, html: String, timestamp: String, 
+         description: String?, industry: String?, source: String?, aiGenerated: Bool?, 
+         optimizedPrompt: String?, isFavorite: Bool = false) {
+        self.id = id
+        self.title = title
+        self.prompt = prompt
+        self.html = html
+        self.timestamp = timestamp
+        self.description = description
+        self.industry = industry
+        self.source = source
+        self.aiGenerated = aiGenerated
+        self.optimizedPrompt = optimizedPrompt
+        self.isFavorite = isFavorite
+    }
+    
+    // MARK: - Codable Implementation
+    enum CodingKeys: String, CodingKey {
+        case id, title, prompt, html, timestamp, description, industry, source, aiGenerated, optimizedPrompt, isFavorite
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+        prompt = try container.decode(String.self, forKey: .prompt)
+        html = try container.decode(String.self, forKey: .html)
+        timestamp = try container.decode(String.self, forKey: .timestamp)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        industry = try container.decodeIfPresent(String.self, forKey: .industry)
+        source = try container.decodeIfPresent(String.self, forKey: .source)
+        aiGenerated = try container.decodeIfPresent(Bool.self, forKey: .aiGenerated)
+        optimizedPrompt = try container.decodeIfPresent(String.self, forKey: .optimizedPrompt)
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(title, forKey: .title)
+        try container.encode(prompt, forKey: .prompt)
+        try container.encode(html, forKey: .html)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(industry, forKey: .industry)
+        try container.encodeIfPresent(source, forKey: .source)
+        try container.encodeIfPresent(aiGenerated, forKey: .aiGenerated)
+        try container.encodeIfPresent(optimizedPrompt, forKey: .optimizedPrompt)
+        try container.encode(isFavorite, forKey: .isFavorite)
+    }
     
     // Computed Properties
     var displayTitle: String {
