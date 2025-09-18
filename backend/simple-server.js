@@ -33,8 +33,9 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 
-// Website templates for fallback generation
+// Comprehensive template collection - 20 diverse templates
 const templates = {
+    // Technology Templates
     technology: {
         title: 'TechVision Pro',
         description: 'Revolutionary technology solutions that transform ideas into reality',
@@ -42,6 +43,22 @@ const templates = {
         features: ['AI-Powered Solutions', 'Cloud Infrastructure', 'Mobile Development', 'Data Analytics', 'Cybersecurity', 'IoT Integration'],
         colors: { primary: '#667eea', secondary: '#764ba2', accent: '#ff6b6b' }
     },
+    startup: {
+        title: 'InnovateHub',
+        description: 'Disruptive startup solutions for the digital age',
+        tagline: 'Disrupting Tomorrow',
+        features: ['MVP Development', 'Funding Solutions', 'Market Analysis', 'Growth Hacking', 'Product Strategy', 'Investor Relations'],
+        colors: { primary: '#ff6b6b', secondary: '#ee5a24', accent: '#667eea' }
+    },
+    saas: {
+        title: 'CloudFlow SaaS',
+        description: 'Scalable software solutions for modern businesses',
+        tagline: 'Scale Without Limits',
+        features: ['API Integration', 'Real-time Analytics', 'Multi-tenant Architecture', 'Auto-scaling', 'Security Compliance', '24/7 Support'],
+        colors: { primary: '#00d2d3', secondary: '#01a3a4', accent: '#ff9ff3' }
+    },
+
+    // Business Templates  
     business: {
         title: 'EliteEnterprise',
         description: 'Professional business solutions for modern enterprises',
@@ -49,6 +66,22 @@ const templates = {
         features: ['Strategic Planning', 'Process Optimization', 'Team Management', 'Growth Analytics', 'Market Research', 'Business Intelligence'],
         colors: { primary: '#2c3e50', secondary: '#34495e', accent: '#e74c3c' }
     },
+    consulting: {
+        title: 'Strategic Advisors',
+        description: 'Expert consulting services that drive measurable results',
+        tagline: 'Strategy. Results. Success.',
+        features: ['Business Strategy', 'Change Management', 'Digital Transformation', 'Performance Optimization', 'Risk Assessment', 'Market Entry'],
+        colors: { primary: '#34495e', secondary: '#2c3e50', accent: '#f39c12' }
+    },
+    marketing: {
+        title: 'BrandBoost Agency',
+        description: 'Creative marketing solutions that amplify your brand',
+        tagline: 'Amplify Your Impact',
+        features: ['Brand Strategy', 'Digital Marketing', 'Content Creation', 'Social Media', 'SEO Optimization', 'Analytics & Reporting'],
+        colors: { primary: '#e74c3c', secondary: '#c0392b', accent: '#3498db' }
+    },
+
+    // Food & Restaurant Templates
     restaurant: {
         title: 'Gourmet Garden',
         description: 'Exceptional dining experience with fresh, locally sourced ingredients',
@@ -56,6 +89,22 @@ const templates = {
         features: ['Farm-to-Table', 'Chef Specials', 'Private Events', 'Online Ordering', 'Catering Services', 'Wine Selection'],
         colors: { primary: '#e67e22', secondary: '#d35400', accent: '#27ae60' }
     },
+    cafe: {
+        title: 'Artisan Coffee House',
+        description: 'Premium coffee experience in a cozy, welcoming atmosphere',
+        tagline: 'Crafted with Passion',
+        features: ['Specialty Roasts', 'Fresh Pastries', 'Free WiFi', 'Study Space', 'Local Art Gallery', 'Community Events'],
+        colors: { primary: '#8b4513', secondary: '#654321', accent: '#daa520' }
+    },
+    bakery: {
+        title: 'Golden Crust Bakery',
+        description: 'Artisanal baked goods made fresh daily with love',
+        tagline: 'Baked Fresh Daily',
+        features: ['Fresh Bread', 'Custom Cakes', 'Pastries & Desserts', 'Wedding Cakes', 'Catering', 'Online Orders'],
+        colors: { primary: '#daa520', secondary: '#b8860b', accent: '#ff6347' }
+    },
+
+    // Health & Wellness Templates
     healthcare: {
         title: 'HealthCare Plus',
         description: 'Comprehensive healthcare solutions for better living',
@@ -63,6 +112,45 @@ const templates = {
         features: ['Expert Consultations', 'Advanced Diagnostics', 'Preventive Care', 'Emergency Services', 'Health Monitoring', 'Wellness Programs'],
         colors: { primary: '#3498db', secondary: '#2980b9', accent: '#e74c3c' }
     },
+    dental: {
+        title: 'Bright Smile Dental',
+        description: 'Advanced dental care for healthy, beautiful smiles',
+        tagline: 'Smile with Confidence',
+        features: ['General Dentistry', 'Cosmetic Procedures', 'Orthodontics', 'Teeth Whitening', 'Emergency Care', 'Family Dental'],
+        colors: { primary: '#00bcd4', secondary: '#0097a7', accent: '#4caf50' }
+    },
+    fitness: {
+        title: 'FitLife Fitness Studio',
+        description: 'Transform your body and mind with our expert fitness programs',
+        tagline: 'Stronger Every Day',
+        features: ['Personal Training', 'Group Classes', 'Nutrition Coaching', 'Strength Training', 'Cardio Programs', 'Wellness Support'],
+        colors: { primary: '#ff5722', secondary: '#e64a19', accent: '#4caf50' }
+    },
+
+    // Creative & Portfolio Templates
+    portfolio: {
+        title: 'Creative Portfolio',
+        description: 'Showcasing creativity and professional excellence',
+        tagline: 'Where Art Meets Innovation',
+        features: ['Project Gallery', 'About Me', 'Skills Showcase', 'Client Testimonials', 'Contact Form', 'Blog Section'],
+        colors: { primary: '#1abc9c', secondary: '#16a085', accent: '#e74c3c' }
+    },
+    photography: {
+        title: 'Lens & Light Photography',
+        description: 'Capturing life\'s precious moments with artistic vision',
+        tagline: 'Moments Made Eternal',
+        features: ['Wedding Photography', 'Portrait Sessions', 'Event Coverage', 'Commercial Shoots', 'Photo Editing', 'Print Services'],
+        colors: { primary: '#34495e', secondary: '#2c3e50', accent: '#f39c12' }
+    },
+    design: {
+        title: 'PixelCraft Design Studio',
+        description: 'Innovative design solutions that captivate and convert',
+        tagline: 'Design That Delivers',
+        features: ['Brand Identity', 'Web Design', 'Print Design', 'UI/UX Design', 'Logo Creation', 'Marketing Materials'],
+        colors: { primary: '#9b59b6', secondary: '#8e44ad', accent: '#e67e22' }
+    },
+
+    // Education Templates
     education: {
         title: 'EduExcellence',
         description: 'Innovative education solutions for lifelong learning',
@@ -70,33 +158,114 @@ const templates = {
         features: ['Online Courses', 'Expert Instructors', 'Interactive Learning', 'Certification Programs', 'Career Guidance', 'Student Support'],
         colors: { primary: '#9b59b6', secondary: '#8e44ad', accent: '#f39c12' }
     },
-    portfolio: {
-        title: 'Creative Portfolio',
-        description: 'Showcasing creativity and professional excellence',
-        tagline: 'Where Art Meets Innovation',
-        features: ['Project Gallery', 'About Me', 'Skills Showcase', 'Client Testimonials', 'Contact Form', 'Blog Section'],
-        colors: { primary: '#1abc9c', secondary: '#16a085', accent: '#e74c3c' }
+    school: {
+        title: 'Bright Future Academy',
+        description: 'Nurturing young minds for tomorrow\'s challenges',
+        tagline: 'Shaping Tomorrow\'s Leaders',
+        features: ['Quality Education', 'Experienced Teachers', 'Modern Facilities', 'Extracurricular Activities', 'Parent Engagement', 'Student Support'],
+        colors: { primary: '#3498db', secondary: '#2980b9', accent: '#f1c40f' }
+    },
+
+    // Service Templates
+    legal: {
+        title: 'Premier Legal Services',
+        description: 'Expert legal representation with personalized attention',
+        tagline: 'Justice Through Excellence',
+        features: ['Corporate Law', 'Personal Injury', 'Family Law', 'Real Estate', 'Criminal Defense', 'Estate Planning'],
+        colors: { primary: '#2c3e50', secondary: '#34495e', accent: '#c0392b' }
+    },
+    finance: {
+        title: 'WealthWise Financial',
+        description: 'Strategic financial planning for your future success',
+        tagline: 'Your Financial Future',
+        features: ['Investment Planning', 'Retirement Solutions', 'Tax Optimization', 'Insurance Services', 'Wealth Management', 'Financial Consulting'],
+        colors: { primary: '#27ae60', secondary: '#229954', accent: '#f39c12' }
+    },
+
+    // Special Templates
+    helloworld: {
+        title: 'Hello World Digital',
+        description: 'Welcome to the world of endless digital possibilities',
+        tagline: 'Code. Create. Connect.',
+        features: ['Web Development', 'App Creation', 'Digital Solutions', 'Code Learning', 'Tech Tutorials', 'Developer Community'],
+        colors: { primary: '#00ff87', secondary: '#00d4ff', accent: '#ff0080' }
+    },
+    personal: {
+        title: 'Personal Brand Hub',
+        description: 'Building your unique digital presence and personal brand',
+        tagline: 'Your Story, Your Brand',
+        features: ['Personal Branding', 'Content Strategy', 'Social Presence', 'Professional Network', 'Skill Development', 'Career Growth'],
+        colors: { primary: '#667eea', secondary: '#764ba2', accent: '#f093fb' }
+    },
+
+    // E-commerce Templates
+    ecommerce: {
+        title: 'ShopSmart Marketplace',
+        description: 'Premium online shopping experience with curated products',
+        tagline: 'Shop Smart, Live Better',
+        features: ['Product Catalog', 'Secure Checkout', 'Customer Reviews', 'Fast Shipping', 'Return Policy', 'Customer Support'],
+        colors: { primary: '#ff6b6b', secondary: '#ee5a24', accent: '#5f27cd' }
+    },
+    fashion: {
+        title: 'StyleVogue Boutique',
+        description: 'Trendy fashion and accessories for the modern lifestyle',
+        tagline: 'Style Redefined',
+        features: ['Latest Trends', 'Size Guide', 'Style Consultation', 'Seasonal Collections', 'Fashion Blog', 'VIP Membership'],
+        colors: { primary: '#ff3838', secondary: '#ff2d92', accent: '#1e3799' }
     }
 };
 
 function detectIndustry(prompt) {
     const lowerPrompt = prompt.toLowerCase();
     
-    // More comprehensive industry detection
-    if (lowerPrompt.includes('tech') || lowerPrompt.includes('startup') || lowerPrompt.includes('software') || lowerPrompt.includes('ai') || lowerPrompt.includes('digital') || lowerPrompt.includes('app') || lowerPrompt.includes('saas')) {
+    // Special keyword detection first
+    if (lowerPrompt.includes('hello world') || lowerPrompt === 'hello world') {
+        return 'helloworld';
+    }
+    
+    // Specific template matching
+    if (lowerPrompt.includes('startup') || lowerPrompt.includes('mvp') || lowerPrompt.includes('funding')) {
+        return 'startup';
+    } else if (lowerPrompt.includes('saas') || lowerPrompt.includes('software as a service') || lowerPrompt.includes('api')) {
+        return 'saas';
+    } else if (lowerPrompt.includes('tech') || lowerPrompt.includes('software') || lowerPrompt.includes('ai') || lowerPrompt.includes('digital')) {
         return 'technology';
-    } else if (lowerPrompt.includes('restaurant') || lowerPrompt.includes('food') || lowerPrompt.includes('cafe') || lowerPrompt.includes('dining') || lowerPrompt.includes('pizza') || lowerPrompt.includes('bakery') || lowerPrompt.includes('bar')) {
+    } else if (lowerPrompt.includes('consulting') || lowerPrompt.includes('advisor') || lowerPrompt.includes('strategy')) {
+        return 'consulting';
+    } else if (lowerPrompt.includes('marketing') || lowerPrompt.includes('agency') || lowerPrompt.includes('brand') || lowerPrompt.includes('advertising')) {
+        return 'marketing';
+    } else if (lowerPrompt.includes('coffee') || lowerPrompt.includes('cafe') || lowerPrompt.includes('espresso')) {
+        return 'cafe';
+    } else if (lowerPrompt.includes('bakery') || lowerPrompt.includes('bread') || lowerPrompt.includes('cake') || lowerPrompt.includes('pastry')) {
+        return 'bakery';
+    } else if (lowerPrompt.includes('restaurant') || lowerPrompt.includes('food') || lowerPrompt.includes('dining') || lowerPrompt.includes('pizza') || lowerPrompt.includes('bar')) {
         return 'restaurant';
-    } else if (lowerPrompt.includes('health') || lowerPrompt.includes('medical') || lowerPrompt.includes('doctor') || lowerPrompt.includes('clinic') || lowerPrompt.includes('hospital') || lowerPrompt.includes('dental')) {
-        return 'healthcare';
-    } else if (lowerPrompt.includes('education') || lowerPrompt.includes('school') || lowerPrompt.includes('learning') || lowerPrompt.includes('course') || lowerPrompt.includes('university') || lowerPrompt.includes('training')) {
-        return 'education';
-    } else if (lowerPrompt.includes('portfolio') || lowerPrompt.includes('personal') || lowerPrompt.includes('creative') || lowerPrompt.includes('artist') || lowerPrompt.includes('photography') || lowerPrompt.includes('design')) {
-        return 'portfolio';
-    } else if (lowerPrompt.includes('gym') || lowerPrompt.includes('fitness') || lowerPrompt.includes('workout') || lowerPrompt.includes('sports')) {
+    } else if (lowerPrompt.includes('dental') || lowerPrompt.includes('dentist') || lowerPrompt.includes('teeth') || lowerPrompt.includes('orthodontic')) {
+        return 'dental';
+    } else if (lowerPrompt.includes('gym') || lowerPrompt.includes('fitness') || lowerPrompt.includes('workout') || lowerPrompt.includes('training')) {
         return 'fitness';
+    } else if (lowerPrompt.includes('health') || lowerPrompt.includes('medical') || lowerPrompt.includes('doctor') || lowerPrompt.includes('clinic') || lowerPrompt.includes('hospital')) {
+        return 'healthcare';
+    } else if (lowerPrompt.includes('school') || lowerPrompt.includes('academy') || lowerPrompt.includes('university')) {
+        return 'school';
+    } else if (lowerPrompt.includes('education') || lowerPrompt.includes('learning') || lowerPrompt.includes('course') || lowerPrompt.includes('training')) {
+        return 'education';
+    } else if (lowerPrompt.includes('photography') || lowerPrompt.includes('photo') || lowerPrompt.includes('camera')) {
+        return 'photography';
+    } else if (lowerPrompt.includes('design') || lowerPrompt.includes('graphic') || lowerPrompt.includes('creative') || lowerPrompt.includes('artist')) {
+        return 'design';
+    } else if (lowerPrompt.includes('portfolio') || lowerPrompt.includes('personal') || lowerPrompt.includes('resume') || lowerPrompt.includes('cv')) {
+        return 'portfolio';
+    } else if (lowerPrompt.includes('legal') || lowerPrompt.includes('law') || lowerPrompt.includes('attorney') || lowerPrompt.includes('lawyer')) {
+        return 'legal';
+    } else if (lowerPrompt.includes('finance') || lowerPrompt.includes('financial') || lowerPrompt.includes('investment') || lowerPrompt.includes('wealth')) {
+        return 'finance';
+    } else if (lowerPrompt.includes('fashion') || lowerPrompt.includes('clothing') || lowerPrompt.includes('style') || lowerPrompt.includes('boutique')) {
+        return 'fashion';
     } else if (lowerPrompt.includes('shop') || lowerPrompt.includes('store') || lowerPrompt.includes('ecommerce') || lowerPrompt.includes('retail') || lowerPrompt.includes('buy') || lowerPrompt.includes('sell')) {
         return 'ecommerce';
+    } else if (lowerPrompt.includes('personal') || lowerPrompt.includes('me') || lowerPrompt.includes('my')) {
+        return 'personal';
     } else {
         return 'business';
     }
