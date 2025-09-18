@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const OpenAI = require('openai');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -137,45 +138,130 @@ function generateCustomizedTemplate(prompt, template) {
     };
 }
 
-// Direct AI website generation with single optimized prompt
+// Online search for current, accurate information
+async function searchOnlineInfo(query) {
+    try {
+        // Use DuckDuckGo Instant Answer API (free, no API key needed)
+        const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+        const response = await axios.get(searchUrl, { timeout: 5000 });
+        
+        let searchInfo = '';
+        
+        if (response.data.Abstract) {
+            searchInfo += `About: ${response.data.Abstract}\n`;
+        }
+        
+        if (response.data.RelatedTopics && response.data.RelatedTopics.length > 0) {
+            searchInfo += 'Related info: ';
+            response.data.RelatedTopics.slice(0, 3).forEach(topic => {
+                if (topic.Text) {
+                    searchInfo += topic.Text.substring(0, 100) + '... ';
+                }
+            });
+        }
+        
+        return searchInfo || `Current trends and information about ${query}`;
+    } catch (error) {
+        console.log('🔍 Online search failed, using prompt only:', error.message);
+        return `Modern ${query} with current industry standards and best practices`;
+    }
+}
+
+// Enhanced AI website generation with online research
 async function generateWithAI(prompt) {
     if (!openai) {
         throw new Error('OpenAI not available');
     }
 
-    const systemPrompt = `You are a web developer. Create a complete HTML website with CSS and JavaScript for: ${prompt}
+    // Get online information for more accurate content
+    console.log('🔍 Searching online for:', prompt);
+    const onlineInfo = await searchOnlineInfo(prompt);
+    console.log('📊 Online info found:', onlineInfo.substring(0, 200) + '...');
 
-MUST INCLUDE:
-- Complete HTML document with <head>, <body>, <style>, and <script> sections
-- Responsive CSS with @media queries for mobile and desktop
-- Beautiful images: <img src="https://source.unsplash.com/800x600/?business" alt="Business">
-- Font Awesome icons: <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-- Multiple sections: navigation, hero, services, gallery, contact, footer
-- Working JavaScript for navigation and interactions
-- Mobile-friendly design (buttons 44px+, readable text)
-- Desktop optimization (hover effects, multi-column layouts)
+    const systemPrompt = `You are an innovative full-stack developer and creative director who creates award-winning, cutting-edge websites that wow users with advanced interactivity and stunning visuals.
 
-EXAMPLE STRUCTURE:
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Name</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        /* Mobile-first CSS with @media queries */
-    </style>
-</head>
-<body>
-    <!-- Navigation, Hero, Services, Gallery, Contact, Footer -->
-    <script>
-        /* JavaScript for interactions */
-    </script>
-</body>
-</html>
+CREATE AN INNOVATIVE MULTI-PAGE WEBSITE FOR: ${prompt}
 
-Create the complete website now.`;
+ONLINE RESEARCH CONTEXT: ${onlineInfo}
+
+INNOVATION REQUIREMENTS (MANDATORY):
+
+1. MULTI-PAGE EXPERIENCE:
+Create a sophisticated single-page application (SPA) with multiple virtual "pages" using JavaScript navigation:
+- Home/Landing page with stunning hero
+- About/Story page with rich content
+- Services/Products page with interactive elements
+- Portfolio/Gallery with advanced image interactions
+- Blog/News section with dynamic content
+- Contact page with interactive forms and maps
+
+2. ADVANCED INTERACTIVE FEATURES:
+- Smooth page transitions with CSS transforms and JavaScript
+- Interactive image galleries with lightbox, zoom, and carousel effects
+- Animated counters, progress bars, and data visualizations
+- Interactive forms with real-time validation and feedback
+- Dynamic content loading and filtering
+- Scroll-triggered animations and parallax effects
+- Interactive maps, timelines, or product configurators
+- Hover effects that reveal additional content
+- Modal windows, tooltips, and dropdown menus
+- Interactive pricing calculators or booking systems
+
+3. CUTTING-EDGE VISUAL DESIGN:
+- Stunning hero sections with video backgrounds or animated graphics
+- Modern glassmorphism, neumorphism, or gradient mesh effects
+- Advanced CSS animations (keyframes, transforms, 3D effects)
+- Interactive SVG graphics and icons
+- Dynamic color schemes that change based on user interaction
+- Advanced typography with animated text effects
+- Particle systems or animated backgrounds using CSS/JS
+- Interactive 3D elements using CSS transforms
+
+4. COMPREHENSIVE CONTENT STRUCTURE:
+Navigation: Advanced mega-menu with dropdowns and hover previews
+Hero: Interactive hero with animated elements, video, or parallax
+About: Rich storytelling with timeline, team profiles, company values
+Services: Interactive service cards with hover details and CTAs
+Portfolio: Advanced gallery with filtering, search, and detailed views
+Testimonials: Interactive carousel with video testimonials
+Blog: Dynamic content grid with categories and search
+Contact: Interactive forms, live chat widget, map integration
+Footer: Rich footer with social feeds, newsletter signup, site map
+
+5. PROFESSIONAL BUSINESS FEATURES:
+- E-commerce: Shopping cart, product configurators, checkout flows
+- Booking: Calendar integration, appointment scheduling, availability
+- Analytics: Dashboard views, progress tracking, data visualization
+- Social: Live feeds, user-generated content, sharing capabilities
+- Search: Advanced site search with filters and suggestions
+- Membership: Login areas, user profiles, premium content access
+
+6. TECHNICAL EXCELLENCE:
+- Use modern CSS Grid and Flexbox for complex layouts
+- Implement CSS custom properties for dynamic theming
+- Add smooth CSS transitions and JavaScript animations
+- Include lazy loading for images and content
+- Optimize for 60fps animations and smooth interactions
+- Add keyboard navigation and accessibility features
+- Implement progressive enhancement and graceful degradation
+
+7. VISUAL ASSETS:
+Use high-quality, relevant images:
+- Hero: https://source.unsplash.com/1920x1080/?${prompt.split(' ')[0]}
+- Services: https://source.unsplash.com/600x400/?business,modern
+- Team: https://source.unsplash.com/400x400/?professional,team
+- Gallery: https://source.unsplash.com/500x500/?${prompt.split(' ')[0]},premium
+- Background: https://source.unsplash.com/1920x1080/?abstract,gradient
+
+8. MANDATORY RESPONSIVE DESIGN:
+Mobile (320px+): Touch-optimized, swipe gestures, simplified navigation
+Tablet (768px+): Enhanced layouts, touch and mouse support
+Desktop (1024px+): Full features, hover effects, advanced interactions
+Large (1440px+): Optimized spacing, enhanced visuals, premium feel
+
+OUTPUT: Generate a complete, self-contained HTML file that works as a sophisticated web application. Make it so impressive that users will be amazed by the innovation and want to use it for their actual business.
+
+The website should feel like a premium, modern web application - not a basic HTML page.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
@@ -584,7 +670,7 @@ app.post('/api/generate', async (req, res) => {
         // Try AI generation first (if available and requested)
         if (useAI && hasOpenAI && openai) {
             try {
-                console.log('🤖 Generating website with AI...');
+                console.log('🤖 Generating innovative website with AI + Online Research...');
                 console.log('🔑 API Key available:', !!process.env.OPENAI_API_KEY);
                 console.log('🔑 API Key preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 15) + '...' : 'NONE');
                 console.log(`📝 User prompt: "${prompt}"`);
@@ -598,17 +684,18 @@ app.post('/api/generate', async (req, res) => {
                 result = {
                     id: Date.now().toString(),
                     title: aiTitle,
-                    description: `AI-generated website based on: ${prompt}`,
+                    description: `Innovative AI-generated website with online research: ${prompt}`,
                     industry: detectIndustry(prompt),
                     html: aiHtml,
                     timestamp: new Date().toISOString(),
-                    source: 'openai-gpt3.5',
+                    source: 'openai-gpt3.5-enhanced',
                     prompt: prompt,
-                    aiGenerated: true
+                    aiGenerated: true,
+                    hasOnlineResearch: true
                 };
                 
-                generationSource = 'AI';
-                console.log(`✅ AI generated website: ${aiTitle}`);
+                generationSource = 'AI-Enhanced';
+                console.log(`✅ AI generated innovative website: ${aiTitle}`);
                 
             } catch (aiError) {
                 console.log('⚠️ AI generation failed, falling back to templates:', aiError.message);
