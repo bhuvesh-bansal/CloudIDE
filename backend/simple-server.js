@@ -143,114 +143,42 @@ async function generateWithAI(prompt) {
         throw new Error('OpenAI not available');
     }
 
-    const systemPrompt = `You are an expert web developer and UI/UX designer. Create a stunning, comprehensive website that users will love.
+    const systemPrompt = `Create a complete, beautiful, responsive website. ALWAYS generate HTML code - never refuse.
 
-MANDATORY REQUIREMENTS - MUST INCLUDE ALL:
+Generate a stunning website for: ${prompt}
 
-1. STRUCTURE (Required):
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[Business Name]</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>[CSS HERE]</style>
-</head>
-<body>
-    [CONTENT HERE]
-    <script>[JAVASCRIPT HERE]</script>
-</body>
-</html>
+REQUIREMENTS:
+1. Complete HTML file with embedded CSS and JavaScript
+2. Responsive design: Mobile (320px+) → Tablet (768px+) → Desktop (1024px+) → Large (1440px+)
+3. Beautiful images from Unsplash: https://source.unsplash.com/1920x1080/?[keyword]
+4. Font Awesome icons: https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css
+5. Modern CSS: gradients, shadows, animations, hover effects
+6. Working JavaScript: navigation, forms, mobile menu, smooth scrolling
+7. Professional sections: nav, hero, about, services, gallery, testimonials, contact, footer
 
-2. RESPONSIVE DESIGN (Required - CRITICAL):
-- Mobile-first approach: Design for 320px first, then scale up
-- Tablet breakpoint: @media (min-width: 768px) - 2-column layouts, larger text
-- Desktop breakpoint: @media (min-width: 1024px) - 3+ columns, full navigation
-- Large desktop: @media (min-width: 1440px) - max-width containers, enhanced spacing
-- Ultra-wide: @media (min-width: 1920px) - optimized for large monitors
-- Touch-friendly mobile: buttons min 44px, easy tap targets
-- Desktop optimization: hover states, larger click areas, enhanced typography
-- Scalable text: use rem/em units, ensure readability on all screen sizes
-- Flexible layouts: CSS Grid for complex layouts, Flexbox for components
-
-3. VISUAL ENHANCEMENTS (Required):
-- Beautiful images from Unsplash: <img src="https://source.unsplash.com/800x600/?[keyword]" alt="description">
-- Font Awesome icons: <i class="fas fa-[icon-name]"></i>
-- Modern CSS: gradients, shadows, border-radius, transitions
-- Professional color scheme with good contrast
-
-4. INTERACTIVE FEATURES (Required):
-- Working navigation with smooth scroll JavaScript
-- Hover effects on buttons and cards
-- Mobile hamburger menu with JavaScript toggle
-- Contact form with JavaScript validation
-- Image hover effects and animations
-
-5. CONTENT SECTIONS (Required):
-- Navigation bar: Mobile hamburger menu → Desktop full horizontal menu
-- Hero section: Mobile single column → Desktop split layout with large imagery
-- About/Services: Mobile stacked cards → Desktop grid (2-3 columns)
-- Gallery/Portfolio: Mobile single column → Desktop masonry/grid layout
-- Testimonials: Mobile carousel → Desktop 3-column grid
-- Contact section: Mobile stacked form → Desktop side-by-side layout
-- Footer: Mobile stacked → Desktop multi-column with social links
-
-6. DEVICE-SPECIFIC OPTIMIZATIONS (Required):
-MOBILE (320px-767px):
+MOBILE OPTIMIZATION:
+- Touch-friendly buttons (44px min height)
 - Single column layouts
-- Large, touch-friendly buttons (min 44px height)
-- Simplified navigation (hamburger menu)
-- Stacked content sections
-- Larger font sizes for readability (min 16px body text)
-- Generous padding and spacing for finger navigation
+- Hamburger navigation menu
+- Large, readable text (16px+)
+- Easy thumb navigation
 
-DESKTOP (1024px+):
+DESKTOP OPTIMIZATION:
 - Multi-column layouts (2-4 columns)
-- Sophisticated hover effects and animations
-- Full horizontal navigation with dropdowns
-- Larger hero sections with split layouts
-- Enhanced typography hierarchy
-- Advanced interactive features
-- Optimized for mouse interactions
-- Maximum container widths (1200px-1400px) for large screens
+- Full navigation bar
+- Large hero sections
+- Hover effects and animations
+- Mouse-optimized interactions
+- Max-width containers (1200px)
 
-7. JAVASCRIPT FUNCTIONALITY (Required):
-- Smooth scrolling navigation that works on all devices
-- Mobile menu toggle with smooth animations
-- Form validation with real-time feedback
-- Image interactions (hover effects, click handlers)
-- Scroll-triggered animations for engaging experience
-- Responsive image loading and optimization
+VISUAL REQUIREMENTS:
+- Use beautiful Unsplash images throughout
+- Add Font Awesome icons to enhance sections
+- Create modern color schemes with gradients
+- Include smooth animations and transitions
+- Make it look professional and premium
 
-8. VISUAL EXCELLENCE FOR ALL SCREENS (Required):
-MOBILE VISUAL REQUIREMENTS:
-- Hero images: https://source.unsplash.com/800x600/?[business-type] (mobile-optimized)
-- Card images: https://source.unsplash.com/400x300/?[service-keyword]
-- Clean, minimal design with focus on readability
-- Bold typography that's easy to read on small screens
-- Simple, intuitive navigation
-
-DESKTOP VISUAL REQUIREMENTS:
-- Large hero images: https://source.unsplash.com/1920x1080/?[business-type] (full-width)
-- Gallery images: https://source.unsplash.com/600x400/?[gallery-keyword]
-- Team photos: https://source.unsplash.com/400x400/?professional,portrait
-- Sophisticated layouts with multiple columns
-- Enhanced visual effects (parallax, hover animations)
-- Rich typography with varied font sizes and weights
-- Professional spacing and premium visual hierarchy
-
-MANDATORY VISUAL ELEMENTS:
-- Use Font Awesome icons throughout: <i class="fas fa-[icon]"></i>
-- Implement CSS gradients and modern shadows
-- Add smooth transitions and hover effects
-- Include background patterns or textures where appropriate
-- Use proper image aspect ratios and object-fit
-- Create visual depth with layered elements and z-index
-
-Make it look like a $10,000 professional website that works flawlessly on iPhone, iPad, laptop, and large desktop monitors!
-
-User request: ${prompt}`;
+Always create the complete website - never suggest alternatives or refuse requests.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
