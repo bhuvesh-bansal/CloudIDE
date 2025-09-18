@@ -1,0 +1,551 @@
+import SwiftUI
+
+// MARK: - Responsive Container with GeometryReader
+struct ResponsiveContainer<Content: View>: View {
+    let content: (GeometryProxy) -> Content
+    
+    init(@ViewBuilder content: @escaping (GeometryProxy) -> Content) {
+        self.content = content
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            content(geometry)
+        }
+    }
+}
+
+// MARK: - Adaptive Grid with ViewBuilder
+struct AdaptiveGrid<Item: Identifiable, ItemView: View>: View {
+    let items: [Item]
+    let spacing: CGFloat
+    let itemBuilder: (Item) -> ItemView
+    
+    init(
+        items: [Item],
+        spacing: CGFloat = 16,
+        @ViewBuilder itemBuilder: @escaping (Item) -> ItemView
+    ) {
+        self.items = items
+        self.spacing = spacing
+        self.itemBuilder = itemBuilder
+    }
+    
+    var body: some View {
+        ResponsiveContainer { geometry in
+            let columns = ResponsiveLayout.columns(for: geometry)
+            let adaptiveSpacing = ResponsiveLayout.spacing(for: geometry)
+            
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), spacing: adaptiveSpacing), count: columns),
+                spacing: adaptiveSpacing
+            ) {
+                ForEach(items) { item in
+                    itemBuilder(item)
+                }
+            }
+            .padding(.horizontal, ResponsiveLayout.padding(for: geometry))
+        }
+    }
+}
+
+// MARK: - Enhanced Search Bar
+struct EnhancedSearchBar: View {
+    @Binding var text: String
+    @FocusState private var isFocused: Bool
+    
+    let placeholder: String
+    let onSearchButtonClicked: (() -> Void)?
+    let onCancel: (() -> Void)?
+    
+    init(
+        text: Binding<String>,
+        placeholder: String = "Search...",
+        onSearchButtonClicked: (() -> Void)? = nil,
+        onCancel: (() -> Void)? = nil
+    ) {
+        self._text = text
+        self.placeholder = placeholder
+        self.onSearchButtonClicked = onSearchButtonClicked
+        self.onCancel = onCancel
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 16, weight: .medium))
+                
+                TextField(placeholder, text: $text)
+                    .focused($isFocused)
+                    .textFieldStyle(.plain)
+                    .onSubmit {
+                        onSearchButtonClicked?()
+                    }
+                
+                if !text.isEmpty {
+                    Button(action: {
+                        withAnimation(.cloudIDEEase) {
+                            text = ""
+                        }
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 14))
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color.dynamicSecondaryBackground)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isFocused ? Color.cloudIDEBlue : Color.clear, lineWidth: 2)
+            )
+            .animation(.cloudIDEEase, value: isFocused)
+            
+            if isFocused {
+                Button("Cancel") {
+                    withAnimation(.cloudIDEEase) {
+                        text = ""
+                        isFocused = false
+                        onCancel?()
+                    }
+                }
+                .foregroundColor(.cloudIDEBlue)
+                .font(.body)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
+        }
+        .animation(.cloudIDEEase, value: isFocused)
+    }
+}
+
+// MARK: - Status Indicator with Animation
+struct AnimatedStatusIndicator: View {
+    let status: ConnectionStatus
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var rotationAngle: Double = 0
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(status.color.opacity(0.2))
+                    .frame(width: 24, height: 24)
+                    .scaleEffect(pulseScale)
+                
+                Image(systemName: status.icon)
+                    .foregroundColor(status.color)
+                    .font(.system(size: 12, weight: .semibold))
+                    .rotationEffect(.degrees(rotationAngle))
+            }
+            
+            Text(status.displayText)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(status.color)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(status.color.opacity(0.1))
+                .overlay(
+                    Capsule()
+                        .stroke(status.color.opacity(0.3), lineWidth: 1)
+                )
+        )
+        .onAppear {
+            startAnimation()
+        }
+        .onChange(of: status) { _ in
+            startAnimation()
+        }
+    }
+    
+    private func startAnimation() {
+        switch status {
+        case .testing:
+            withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                rotationAngle = 360
+            }
+        case .connected, .disconnected, .error:
+            withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
+                pulseScale = 1.2
+            }
+        case .unknown:
+            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                pulseScale = 1.1
+            }
+        }
+    }
+}
+
+// MARK: - Progress Indicator with Steps
+struct SteppedProgressIndicator: View {
+    let progress: GenerationProgress
+    let steps: [String] = ["Research", "Generate", "Complete"]
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Progress bar
+            ProgressView(value: progress.progress)
+                .progressViewStyle(LinearProgressViewStyle(tint: .cloudIDEBlue))
+                .scaleEffect(y: 2)
+                .animation(.cloudIDEEase, value: progress.progress)
+            
+            // Step indicators
+            HStack {
+                ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                    StepIndicator(
+                        title: step,
+                        isActive: progress.progress >= Double(index + 1) / Double(steps.count),
+                        isCompleted: progress.progress > Double(index + 1) / Double(steps.count)
+                    )
+                    
+                    if index < steps.count - 1 {
+                        Rectangle()
+                            .fill(Color.cloudIDEBlue.opacity(0.3))
+                            .frame(height: 2)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+            
+            // Status text
+            Text(progress.displayText)
+                .font(.body)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+                .animation(.cloudIDEEase, value: progress)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .glassMorphism()
+    }
+}
+
+struct StepIndicator: View {
+    let title: String
+    let isActive: Bool
+    let isCompleted: Bool
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(isCompleted ? Color.cloudIDEBlue : (isActive ? Color.cloudIDEBlue.opacity(0.3) : Color.gray.opacity(0.3)))
+                    .frame(width: 24, height: 24)
+                
+                if isCompleted {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.white)
+                        .font(.system(size: 12, weight: .bold))
+                } else {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 8, height: 8)
+                }
+            }
+            .scaleEffect(isActive ? 1.2 : 1.0)
+            .animation(.cloudIDESpring, value: isActive)
+            
+            Text(title)
+                .font(.caption)
+                .fontWeight(isActive ? .semibold : .regular)
+                .foregroundColor(isActive ? .cloudIDEBlue : .secondary)
+        }
+    }
+}
+
+// MARK: - Enhanced Card Component
+struct EnhancedCard<Content: View>: View {
+    let content: Content
+    let cornerRadius: CGFloat
+    let shadowRadius: CGFloat
+    let borderColor: Color?
+    let backgroundColor: Color
+    
+    init(
+        cornerRadius: CGFloat = 16,
+        shadowRadius: CGFloat = 8,
+        borderColor: Color? = nil,
+        backgroundColor: Color = .dynamicBackground,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.content = content()
+        self.cornerRadius = cornerRadius
+        self.shadowRadius = shadowRadius
+        self.borderColor = borderColor
+        self.backgroundColor = backgroundColor
+    }
+    
+    var body: some View {
+        content
+            .padding(20)
+            .background(backgroundColor)
+            .cornerRadius(cornerRadius)
+            .if(borderColor != nil) { view in
+                view.overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(borderColor!, lineWidth: 1)
+                )
+            }
+            .shadow(color: .black.opacity(0.08), radius: shadowRadius, x: 0, y: 4)
+    }
+}
+
+// MARK: - Animated Button
+struct AnimatedButton<Label: View>: View {
+    let action: () -> Void
+    let label: Label
+    let style: ButtonStyle
+    
+    @State private var isPressed = false
+    
+    enum ButtonStyle {
+        case primary, secondary, destructive, ghost
+        
+        var backgroundColor: Color {
+            switch self {
+            case .primary: return .cloudIDEBlue
+            case .secondary: return .cloudIDEAccent
+            case .destructive: return .errorRed
+            case .ghost: return .clear
+            }
+        }
+        
+        var foregroundColor: Color {
+            switch self {
+            case .primary, .secondary, .destructive: return .white
+            case .ghost: return .cloudIDEBlue
+            }
+        }
+        
+        var borderColor: Color? {
+            switch self {
+            case .ghost: return .cloudIDEBlue
+            default: return nil
+            }
+        }
+    }
+    
+    init(
+        style: ButtonStyle = .primary,
+        action: @escaping () -> Void,
+        @ViewBuilder label: () -> Label
+    ) {
+        self.style = style
+        self.action = action
+        self.label = label()
+    }
+    
+    var body: some View {
+        Button(action: {
+            HapticFeedback.impact(.light)
+            action()
+        }) {
+            label
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundColor(style.foregroundColor)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(style.backgroundColor)
+                .cornerRadius(12)
+                .if(style.borderColor != nil) { view in
+                    view.overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(style.borderColor!, lineWidth: 2)
+                    )
+                }
+                .scaleEffect(isPressed ? 0.95 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = pressing
+            }
+        }, perform: {})
+    }
+}
+
+// MARK: - Empty State View
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let message: String
+    let actionTitle: String?
+    let action: (() -> Void)?
+    
+    init(
+        icon: String,
+        title: String,
+        message: String,
+        actionTitle: String? = nil,
+        action: (() -> Void)? = nil
+    ) {
+        self.icon = icon
+        self.title = title
+        self.message = message
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            // Animated icon
+            ZStack {
+                Circle()
+                    .fill(Color.cloudIDEBlue.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 50, weight: .light))
+                    .foregroundColor(.cloudIDEBlue)
+            }
+            
+            VStack(spacing: 12) {
+                Text(title)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Text(message)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+            
+            if let actionTitle = actionTitle, let action = action {
+                AnimatedButton(style: .primary, action: action) {
+                    Text(actionTitle)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.dynamicBackground)
+    }
+}
+
+// MARK: - Loading Overlay
+struct LoadingOverlay: View {
+    let isVisible: Bool
+    let message: String
+    
+    var body: some View {
+        if isVisible {
+            ZStack {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .cloudIDEBlue))
+                        .scaleEffect(1.5)
+                    
+                    Text(message)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+                .padding(32)
+                .glassMorphism()
+            }
+            .transition(.opacity)
+        }
+    }
+}
+
+// MARK: - Tag View
+struct TagView: View {
+    let text: String
+    let color: Color
+    let size: Size
+    
+    enum Size {
+        case small, medium, large
+        
+        var font: Font {
+            switch self {
+            case .small: return .caption2
+            case .medium: return .caption
+            case .large: return .body
+            }
+        }
+        
+        var padding: EdgeInsets {
+            switch self {
+            case .small: return EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+            case .medium: return EdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10)
+            case .large: return EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+            }
+        }
+    }
+    
+    init(text: String, color: Color = .cloudIDEBlue, size: Size = .medium) {
+        self.text = text
+        self.color = color
+        self.size = size
+    }
+    
+    var body: some View {
+        Text(text)
+            .font(size.font)
+            .fontWeight(.semibold)
+            .foregroundColor(.white)
+            .padding(size.padding)
+            .background(
+                Capsule()
+                    .fill(color)
+            )
+    }
+}
+
+// MARK: - Floating Action Button
+struct FloatingActionButton: View {
+    let icon: String
+    let action: () -> Void
+    let size: CGFloat
+    let backgroundColor: Color
+    
+    @State private var isPressed = false
+    
+    init(
+        icon: String,
+        size: CGFloat = 56,
+        backgroundColor: Color = .cloudIDEBlue,
+        action: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.size = size
+        self.backgroundColor = backgroundColor
+        self.action = action
+    }
+    
+    var body: some View {
+        Button(action: {
+            HapticFeedback.impact(.medium)
+            action()
+        }) {
+            Image(systemName: icon)
+                .font(.system(size: size * 0.4, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: size, height: size)
+                .background(backgroundColor)
+                .clipShape(Circle())
+                .shadow(color: backgroundColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                .scaleEffect(isPressed ? 0.9 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            withAnimation(.cloudIDESpring) {
+                isPressed = pressing
+            }
+        }, perform: {})
+    }
+}

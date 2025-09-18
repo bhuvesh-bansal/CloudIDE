@@ -149,7 +149,8 @@ struct AdvancedContentView: View {
     private var iPhoneLayout: some View {
         TabView(selection: $selectedTab) {
             // Chat Tab
-            AdvancedChatView(
+            ChatWithPreviewView(
+                currentWebsite: $currentWebsite,
                 onWebsiteGenerated: { website in
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                         currentWebsite = website
@@ -163,14 +164,14 @@ struct AdvancedContentView: View {
             .tag(MainTab.chat)
             
             // History Tab
-            WebsiteHistoryView()
+            ImprovedHistoryView()
                 .tabItem {
                     Label(MainTab.history.rawValue, systemImage: MainTab.history.icon)
                 }
                 .tag(MainTab.history)
             
             // Settings Tab
-            SettingsView()
+            ImprovedSettingsView()
                 .tabItem {
                     Label(MainTab.settings.rawValue, systemImage: MainTab.settings.icon)
                 }
