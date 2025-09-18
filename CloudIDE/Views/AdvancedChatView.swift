@@ -461,7 +461,6 @@ struct QuickActionsView: View {
                         insertion: .scale.combined(with: .opacity),
                         removal: .scale.combined(with: .opacity)
                     ))
-                    .animation(.easeInOut(duration: 0.5).delay(Double(index) * 0.1), value: showQuickActions)
                 }
                 }
                 .padding(.horizontal, 20)
