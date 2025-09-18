@@ -193,50 +193,6 @@ struct ContentView: View {
     }
 }
 
-// MARK: - App State Manager
-class AppStateManager: ObservableObject {
-    @Published var websiteHistory: [Website] = []
-    @Published var favoriteWebsites: [Website] = []
-    @Published var userPreferences = UserPreferences()
-    
-    struct UserPreferences {
-        var preferAI: Bool = true
-        var autoSaveWebsites: Bool = true
-        var enableHapticFeedback: Bool = true
-        var defaultIndustry: String = "business"
-    }
-    
-    func addWebsite(_ website: Website) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            websiteHistory.insert(website, at: 0)
-            
-            // Keep only last 50 websites for performance
-            if websiteHistory.count > 50 {
-                websiteHistory = Array(websiteHistory.prefix(50))
-            }
-        }
-    }
-    
-    func toggleFavorite(_ website: Website) {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            if favoriteWebsites.contains(where: { $0.id == website.id }) {
-                favoriteWebsites.removeAll { $0.id == website.id }
-            } else {
-                favoriteWebsites.append(website)
-            }
-        }
-    }
-    
-    func isFavorite(_ website: Website) -> Bool {
-        favoriteWebsites.contains { $0.id == website.id }
-    }
-    
-    func clearHistory() {
-        withAnimation(.easeInOut(duration: 0.5)) {
-            websiteHistory.removeAll()
-        }
-    }
-}
 
 // MARK: - Website History View
 struct WebsiteHistoryView: View {
@@ -489,82 +445,6 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - About View
-struct AboutView: View {
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // App icon and branding
-                    VStack(spacing: 16) {
-                        Image(systemName: "cloud.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(.blue)
-                        
-                        Text("CloudIDE")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        
-                        Text("AI-Powered Website Generator")
-                            .font(.title3)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    // Features
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Features")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        FeatureRow(icon: "brain.head.profile", text: "Advanced AI Generation")
-                        FeatureRow(icon: "paintbrush.fill", text: "Professional Templates")
-                        FeatureRow(icon: "iphone", text: "Mobile-Optimized Designs")
-                        FeatureRow(icon: "square.and.arrow.down", text: "Export Ready HTML")
-                        FeatureRow(icon: "clock.fill", text: "Generation History")
-                        FeatureRow(icon: "heart.fill", text: "Favorite Websites")
-                    }
-                    
-                    // Developer showcase
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("iOS Development Showcase")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        Text("This app demonstrates advanced iOS development skills including:")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("• MVVM Architecture with Combine")
-                            Text("• Advanced SwiftUI Animations")
-                            Text("• Custom UI Components")
-                            Text("• WebKit Integration")
-                            Text("• Haptic Feedback")
-                            Text("• Responsive Layouts")
-                            Text("• State Management")
-                            Text("• Advanced Networking")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
-            }
-            .navigationTitle("About")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-}
 
 #Preview {
     ContentView()
