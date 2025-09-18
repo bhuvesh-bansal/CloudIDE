@@ -451,17 +451,18 @@ struct QuickActionsView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(Array(quickPrompts.enumerated()), id: \.offset) { index, prompt in
-                        QuickActionCard(
-                            emoji: prompt.0,
-                            text: prompt.1,
-                            onTap: { onQuickPrompt(prompt.1) }
-                        )
-                        .transition(.asymmetric(
-                            insertion: .scale.combined(with: .opacity).delay(Double(index) * 0.1),
-                            removal: .scale.combined(with: .opacity)
-                        ))
-                    }
+                ForEach(Array(quickPrompts.enumerated()), id: \.offset) { index, prompt in
+                    QuickActionCard(
+                        emoji: prompt.0,
+                        text: prompt.1,
+                        onTap: { onQuickPrompt(prompt.1) }
+                    )
+                    .transition(.asymmetric(
+                        insertion: .scale.combined(with: .opacity),
+                        removal: .scale.combined(with: .opacity)
+                    ))
+                    .animation(.easeInOut(duration: 0.5).delay(Double(index) * 0.1), value: showQuickActions)
+                }
                 }
                 .padding(.horizontal, 20)
             }

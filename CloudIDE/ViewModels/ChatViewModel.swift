@@ -258,17 +258,3 @@ class ChatViewModel: ObservableObject {
         selectionFeedback.selectionChanged()
     }
 }
-
-// MARK: - Supporting Models
-struct ChatMessage: Identifiable, Equatable {
-    let id: String
-    let text: String
-    let isUser: Bool
-    let timestamp: Date
-    
-    var timeString: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: timestamp)
-    }
-}

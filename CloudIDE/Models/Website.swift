@@ -1,6 +1,6 @@
 import Foundation
 
-struct Website: Codable, Identifiable {
+struct Website: Codable, Identifiable, Equatable {
     let id: String
     let title: String?
     let prompt: String
