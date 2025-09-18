@@ -24,16 +24,12 @@ struct ChatView: View {
             )
             .ignoresSafeArea()
             
-            // Subtle pattern overlay
-            VStack {
-                Spacer()
-            }
-            .background(
-                Image(systemName: "cloud.fill")
-                    .font(.system(size: 200))
-                    .foregroundColor(.white.opacity(0.05))
-                    .scaleEffect(1.5)
-            )
+            // Optimized subtle pattern overlay
+            Image(systemName: "cloud.fill")
+                .font(.system(size: 200))
+                .foregroundColor(.white.opacity(0.05))
+                .scaleEffect(1.5)
+                .allowsHitTesting(false) // Performance optimization
             
             VStack(spacing: 0) {
                 // Enhanced Header

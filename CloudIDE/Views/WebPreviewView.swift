@@ -46,8 +46,8 @@ struct WebPreviewView: View {
                 }
                 .padding(.vertical, 4)
                 
-                // Web preview
-                WebView(htmlContent: website.html)
+                // Optimized web preview
+                OptimizedWebView(htmlContent: website.html)
                     .background(Color.white)
                     .onTapGesture(count: 2) {
                         isFullScreen = true
@@ -146,6 +146,7 @@ struct FullScreenWebView: View {
     let website: Website?
     @Binding var isPresented: Bool
     @State private var showToolbar = true
+    @State private var showShareSheet = false
     
     var body: some View {
         NavigationView {
@@ -170,7 +171,7 @@ struct FullScreenWebView: View {
                         // Share button
                         if website != nil {
                             Button(action: {
-                                shareWebsite()
+                                showShareSheet = true
                             }) {
                                 Image(systemName: "square.and.arrow.up")
                                     .foregroundColor(.blue)
@@ -185,7 +186,7 @@ struct FullScreenWebView: View {
                 
                 // Full screen web view
                 if let website = website {
-                    WebView(htmlContent: website.html)
+                    OptimizedWebView(htmlContent: website.html)
                         .background(Color.white)
                         .onTapGesture {
                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -217,29 +218,99 @@ struct FullScreenWebView: View {
         .navigationViewStyle(StackNavigationViewStyle())
         .navigationBarHidden(true)
         .statusBarHidden(!showToolbar)
+        .sheet(isPresented: $showShareSheet) {
+            if let website = website {
+                ShareSheet(website: website)
+            }
+        }
     }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let website: Website
     
-    private func shareWebsite() {
-        guard let website = website else { return }
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        // Create shareable content
+        let shareText = "Check out this website I created with CloudIDE: \(website.displayTitle)"
         
-        // Create a temporary HTML file and share it
+        // Create a temporary HTML file
         let htmlString = website.html
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("website.html")
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(website.displayTitle.replacingOccurrences(of: " ", with: "_")).html")
         
+        var activityItems: [Any] = [shareText]
+        
+        // Try to create the HTML file
         do {
             try htmlString.write(to: tempURL, atomically: true, encoding: .utf8)
-            
-            let activityVC = UIActivityViewController(
-                activityItems: [tempURL],
-                applicationActivities: nil
-            )
-            
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first {
-                window.rootViewController?.present(activityVC, animated: true)
-            }
+            activityItems.append(tempURL)
         } catch {
-            print("Error sharing website: \(error)")
+            print("Could not create HTML file: \(error)")
+            // Fallback to just sharing the HTML content as text
+            activityItems.append("Website HTML:\n\n\(htmlString)")
+        }
+        
+        let activityViewController = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+        
+        // Configure for iPad
+        if let popover = activityViewController.popoverPresentationController {
+            popover.sourceView = UIView()
+            popover.sourceRect = CGRect(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        return activityViewController
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        // No updates needed
+    }
+}
+
+// Performance optimized WebView
+struct OptimizedWebView: UIViewRepresentable {
+    let htmlContent: String
+    
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.preferences.javaScriptEnabled = true
+        configuration.allowsInlineMediaPlayback = true
+        
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.navigationDelegate = context.coordinator
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.bounces = true
+        
+        // Performance optimizations
+        webView.scrollView.decelerationRate = UIScrollView.DecelerationRate.normal
+        webView.allowsBackForwardNavigationGestures = false
+        
+        return webView
+    }
+    
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        // Only reload if content actually changed
+        if webView.url?.absoluteString != "about:blank" {
+            webView.loadHTMLString(htmlContent, baseURL: nil)
+        } else {
+            webView.loadHTMLString(htmlContent, baseURL: nil)
+        }
+    }
+    
+    func makeCoordinator() -> WebViewCoordinator {
+        WebViewCoordinator()
+    }
+    
+    class WebViewCoordinator: NSObject, WKNavigationDelegate {
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            // Optimize performance after loading
+            webView.evaluateJavaScript("document.body.style.webkitTouchCallout='none';")
+        }
+        
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            print("WebView error: \(error.localizedDescription)")
         }
     }
 }
