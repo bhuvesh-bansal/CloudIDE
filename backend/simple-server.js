@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const OpenAI = require('openai');
 const axios = require('axios');
+const { getWebsiteImageSet, generateImageHTML, getRandomImage, getRandomImages, imageCategories } = require('./image-manager');
 require('dotenv').config();
 
 const app = express();
@@ -173,15 +174,21 @@ async function generateWithAI(prompt) {
         throw new Error('OpenAI not available');
     }
 
-    // Get online information for more accurate content
+    // Get online information and image set for more accurate content
     console.log('🔍 Searching online for:', prompt);
     const onlineInfo = await searchOnlineInfo(prompt);
     console.log('📊 Online info found:', onlineInfo.substring(0, 200) + '...');
+    
+    // Get curated image set for this website
+    const industry = detectIndustry(prompt);
+    const imageSet = getWebsiteImageSet(industry);
+    console.log('🖼️ Image set prepared for industry:', industry);
 
     const systemPrompt = `Create a complete, professional website. NEVER use placeholders or incomplete code.
 
 Build a full website for: ${prompt}
 Use this research: ${onlineInfo}
+Use these curated images: ${JSON.stringify(imageSet)}
 
 MANDATORY: Generate a complete HTML file with:
 - Complete CSS styling (minimum 100 lines)
@@ -189,17 +196,26 @@ MANDATORY: Generate a complete HTML file with:
 - Real business content (no placeholders like [add content])
 - Multiple sections: nav, hero, about, services, gallery, contact, footer
 - Responsive design with @media queries
-- Beautiful images from Unsplash
+- Beautiful curated images (use the provided imageSet URLs)
 - Font Awesome icons
 - Interactive features that work in mobile WebViews
 
+IMAGE USAGE INSTRUCTIONS:
+- Hero section: Use imageSet.hero for main background
+- Services section: Use imageSet.services[0], imageSet.services[1], etc.
+- Gallery section: Use imageSet.gallery[0] through imageSet.gallery[5]
+- Team section: Use imageSet.team[0], imageSet.team[1], imageSet.team[2]
+- About section: Use imageSet.about
+- Contact section: Use imageSet.contact
+
 IMPORTANT JAVASCRIPT RULES:
 - Use smooth scrolling for navigation (scrollIntoView with behavior: 'smooth')
-- Replace alert() with custom notifications or console.log()
+- Replace alert() with console.log() or custom notifications
 - Use addEventListener instead of inline onclick handlers
 - Avoid prompt() and confirm() dialogs
 - Use CSS transitions instead of complex animations
 - Make all interactions touch-friendly for mobile
+- All images load reliably (no external API dependencies)
 
 Example output should be a complete website like this:
 
@@ -774,8 +790,29 @@ app.get('/api/test', (req, res) => {
         message: 'CloudIDE API is working!',
         timestamp: new Date().toISOString(),
         server: 'Render.com',
-        features: ['AI Generation', 'Template Fallback', 'Prompt Optimization']
+        features: ['AI Generation', 'Template Fallback', 'Curated Images']
     });
+});
+
+// Random image endpoint
+app.get('/api/images/:category', (req, res) => {
+    const { category } = req.params;
+    const { count = 1 } = req.query;
+    
+    try {
+        if (count == 1) {
+            const image = getRandomImage(category);
+            res.json({ image });
+        } else {
+            const images = getRandomImages(category, parseInt(count));
+            res.json({ images });
+        }
+    } catch (error) {
+        res.status(400).json({ 
+            error: 'Invalid category',
+            availableCategories: Object.keys(imageCategories)
+        });
+    }
 });
 
 // Test OpenAI API directly
