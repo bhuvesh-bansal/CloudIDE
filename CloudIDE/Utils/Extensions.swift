@@ -199,13 +199,13 @@ extension Array where Element == Website {
         formatter.dateStyle = .medium
         
         return Dictionary(grouping: self) { website in
-            formatter.string(from: website.timestamp)
+            formatter.string(from: website.timestampDate)
         }
     }
     
     /// Sorts by most recent first
     func sortedByDate() -> [Website] {
-        return self.sorted { $0.timestamp > $1.timestamp }
+        return self.sorted { $0.timestampDate > $1.timestampDate }
     }
 }
 

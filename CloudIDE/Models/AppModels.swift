@@ -2,12 +2,8 @@ import Foundation
 import SwiftUI
 
 // MARK: - Core Protocols
-protocol Identifiable {
-    var id: String { get }
-}
-
 protocol Timestampable {
-    var timestamp: Date { get }
+    var timestampDate: Date { get }
     var formattedDate: String { get }
 }
 
@@ -25,7 +21,7 @@ struct Website: Codable, Identifiable, Equatable, Timestampable, Searchable, Fav
     let title: String?
     let prompt: String
     let html: String
-    let timestampString: String
+    let timestamp: String
     let description: String?
     let industry: String?
     let source: String?
@@ -42,17 +38,17 @@ struct Website: Codable, Identifiable, Equatable, Timestampable, Searchable, Fav
         return aiGenerated ?? false
     }
     
-    var timestamp: Date {
+    var timestampDate: Date {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-        return formatter.date(from: timestampString) ?? Date()
+        return formatter.date(from: timestamp) ?? Date()
     }
     
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        return formatter.string(from: timestamp)
+        return formatter.string(from: timestampDate)
     }
     
     var generationBadge: GenerationBadge {
@@ -270,6 +266,14 @@ struct GenerateRequest: Codable {
         self.includeImages = includeImages
         self.researchOnline = researchOnline
     }
+    
+    // Backward compatibility initializer
+    init(prompt: String, useAI: Bool = true) {
+        self.prompt = prompt
+        self.useAI = useAI
+        self.includeImages = true
+        self.researchOnline = true
+    }
 }
 
 struct GenerateResponse: Codable {
@@ -301,12 +305,13 @@ struct GenerateResponse: Codable {
             title: title,
             prompt: prompt,
             html: html,
-            timestampString: timestamp,
+            timestamp: timestamp,
             description: description,
             industry: industry,
             source: source,
             aiGenerated: aiGenerated,
-            optimizedPrompt: optimizedPrompt
+            optimizedPrompt: optimizedPrompt,
+            isFavorite: false
         )
     }
 }

@@ -74,7 +74,7 @@ struct HistoryView: View {
         case .newest:
             websites = websites.sortedByDate()
         case .oldest:
-            websites = websites.sorted { $0.timestamp < $1.timestamp }
+            websites = websites.sorted { $0.timestampDate < $1.timestampDate }
         case .alphabetical:
             websites = websites.sorted { $0.displayTitle < $1.displayTitle }
         case .industry:
