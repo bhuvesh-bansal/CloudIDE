@@ -1,5 +1,92 @@
 import SwiftUI
 
+// MARK: - Animated Gradient Background
+struct AnimatedGradientBackground: View {
+    @State private var animateGradient = false
+    
+    var body: some View {
+        LinearGradient(
+            gradient: Gradient(colors: [
+                Color(red: 0.4, green: 0.48, blue: 0.92),
+                Color(red: 0.46, green: 0.29, blue: 0.64),
+                Color(red: 0.3, green: 0.6, blue: 0.9)
+            ]),
+            startPoint: animateGradient ? .topLeading : .bottomTrailing,
+            endPoint: animateGradient ? .bottomTrailing : .topLeading
+        )
+        .onAppear {
+            withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+                animateGradient.toggle()
+            }
+        }
+    }
+}
+
+// MARK: - Advanced Message Bubble
+struct AdvancedMessageBubble: View {
+    let message: ChatMessage
+    @State private var animateAppearance = false
+    
+    var body: some View {
+        HStack {
+            if message.isUser {
+                Spacer()
+            }
+            
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 6) {
+                Text(message.text)
+                    .font(.body)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        Group {
+                            if message.isUser {
+                                // User message - CloudIDE gradient
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(red: 0.4, green: 0.48, blue: 0.92),
+                                        Color(red: 0.46, green: 0.29, blue: 0.64)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            } else {
+                                // AI response - animated glass effect
+                                Rectangle()
+                                    .fill(.ultraThinMaterial)
+                                    .background(.white.opacity(animateAppearance ? 0.9 : 0.7))
+                            }
+                        }
+                    )
+                    .foregroundColor(message.isUser ? .white : .primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .shadow(
+                        color: .black.opacity(0.1),
+                        radius: animateAppearance ? 8 : 4,
+                        x: 0,
+                        y: animateAppearance ? 4 : 2
+                    )
+                
+                Text(message.timeString)
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.6))
+                    .padding(.horizontal, 8)
+            }
+            .scaleEffect(animateAppearance ? 1 : 0.8)
+            .opacity(animateAppearance ? 1 : 0)
+            
+            if !message.isUser {
+                Spacer()
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+                animateAppearance = true
+            }
+        }
+    }
+}
+
 // MARK: - Core ViewBuilder Components
 struct ResponsiveContainer<Content: View>: View {
     let content: (GeometryProxy) -> Content

@@ -52,14 +52,14 @@ struct ContentView: View {
     private var iPadLayout: some View {
         HStack(spacing: 0) {
             // Left Panel - Chat Interface
-            AdvancedChatView(
+            ChatView(
+                currentWebsite: $currentWebsite,
                 onWebsiteGenerated: { website in
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                         currentWebsite = website
                         appState.addWebsite(website)
                     }
-                },
-                isPreviewCollapsed: isPreviewCollapsed
+                }
             )
             .frame(maxWidth: .infinity)
             
@@ -76,11 +76,11 @@ struct ContentView: View {
                     .transition(.opacity)
                 
                 // Right Panel - Web Preview
-                AdvancedWebPreviewView(website: currentWebsite)
+                WebPreviewView(website: currentWebsite)
                     .frame(maxWidth: .infinity)
                     .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .trailing).combined(with: .opacity)
+                        insertion: AnyTransition.move(edge: .trailing).combined(with: .opacity),
+                        removal: AnyTransition.move(edge: .trailing).combined(with: .opacity)
                     ))
             }
         }
@@ -249,11 +249,18 @@ struct WebsiteHistoryView: View {
             }
         }
         .sheet(item: $selectedWebsite) { website in
-            AdvancedFullScreenWebView(
-                website: website,
-                isPresented: .constant(true),
-                webViewStore: WebViewStore()
-            )
+            NavigationView {
+                WebPreviewView(website: website)
+                    .navigationTitle("Website Preview")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") {
+                                selectedWebsite = nil
+                            }
+                        }
+                    }
+            }
         }
     }
     
@@ -380,70 +387,6 @@ struct WebsiteHistoryRow: View {
     }
 }
 
-// MARK: - Settings View
-struct SettingsView: View {
-    @EnvironmentObject var appState: AppStateManager
-    @State private var showAbout = false
-    
-    var body: some View {
-        NavigationView {
-            List {
-                Section("Generation Preferences") {
-                    Toggle("Prefer AI Generation", isOn: $appState.userPreferences.preferAI)
-                    Toggle("Auto-save Websites", isOn: $appState.userPreferences.autoSaveWebsites)
-                    Toggle("Haptic Feedback", isOn: $appState.userPreferences.enableHapticFeedback)
-                }
-                
-                Section("Statistics") {
-                    HStack {
-                        Text("Websites Created")
-                        Spacer()
-                        Text("\(appState.websiteHistory.count)")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Favorites")
-                        Spacer()
-                        Text("\(appState.favoriteWebsites.count)")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("AI Generated")
-                        Spacer()
-                        Text("\(appState.websiteHistory.filter { $0.isAIGenerated }.count)")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Section("App Information") {
-                    Button("About CloudIDE") {
-                        showAbout = true
-                    }
-                    
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text(AppConfig.appVersion)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Button("Clear All Data") {
-                        appState.clearHistory()
-                        appState.favoriteWebsites.removeAll()
-                    }
-                    .foregroundColor(.red)
-                }
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
-        }
-        .sheet(isPresented: $showAbout) {
-            AboutView()
-        }
-    }
-}
 
 
 #Preview {

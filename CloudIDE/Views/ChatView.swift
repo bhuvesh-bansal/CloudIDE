@@ -166,8 +166,8 @@ struct ChatView: View {
                     ForEach(viewModel.messages) { message in
                         AdvancedMessageBubble(message: message)
                             .transition(.asymmetric(
-                                insertion: .move(edge: .trailing).combined(with: .opacity),
-                                removal: .move(edge: .leading).combined(with: .opacity)
+                                insertion: AnyTransition.move(edge: .trailing).combined(with: .opacity),
+                                removal: AnyTransition.move(edge: .leading).combined(with: .opacity)
                             ))
                     }
                     

@@ -18,41 +18,7 @@ class ChatViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
     
-    // MARK: - Enums
-    enum ConnectionStatus {
-        case unknown, connected, disconnected, testing
-        
-        var displayText: String {
-            switch self {
-            case .unknown: return "Checking..."
-            case .connected: return "AI Ready"
-            case .disconnected: return "Offline"
-            case .testing: return "Testing..."
-            }
-        }
-        
-        var color: Color {
-            switch self {
-            case .unknown: return .orange
-            case .connected: return .green
-            case .disconnected: return .red
-            case .testing: return .blue
-            }
-        }
-    }
-    
-    enum GenerationProgress {
-        case idle, researching, generating, completing
-        
-        var displayText: String {
-            switch self {
-            case .idle: return "Ready to create"
-            case .researching: return "🔍 Researching online..."
-            case .generating: return "🤖 Creating website..."
-            case .completing: return "✨ Finalizing..."
-            }
-        }
-    }
+    // Using ConnectionStatus and GenerationProgress from AppModels
     
     // MARK: - Initialization
     init(apiService: APIService = APIService()) {
