@@ -191,7 +191,15 @@ MANDATORY: Generate a complete HTML file with:
 - Responsive design with @media queries
 - Beautiful images from Unsplash
 - Font Awesome icons
-- Interactive features that actually work
+- Interactive features that work in mobile WebViews
+
+IMPORTANT JAVASCRIPT RULES:
+- Use smooth scrolling for navigation (scrollIntoView with behavior: 'smooth')
+- Replace alert() with custom notifications or console.log()
+- Use addEventListener instead of inline onclick handlers
+- Avoid prompt() and confirm() dialogs
+- Use CSS transitions instead of complex animations
+- Make all interactions touch-friendly for mobile
 
 Example output should be a complete website like this:
 

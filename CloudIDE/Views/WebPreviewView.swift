@@ -269,32 +269,47 @@ struct ShareSheet: UIViewControllerRepresentable {
     }
 }
 
-// Performance optimized WebView
+// Enhanced WebView with proper interaction handling
 struct OptimizedWebView: UIViewRepresentable {
     let htmlContent: String
     
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        
+        // Enhanced JavaScript configuration
         configuration.preferences.javaScriptEnabled = true
-        configuration.allowsInlineMediaPlayback = true
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+        configuration.allowsInlineMediaPlaybook = true
+        configuration.allowsAirPlayForMediaPlayback = true
+        
+        // Disable problematic features that cause input issues
+        configuration.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
+        configuration.preferences.setValue(false, forKey: "allowUniversalAccessFromFileURLs")
         
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
+        
+        // Optimize scrolling and interaction
         webView.scrollView.isScrollEnabled = true
         webView.scrollView.bounces = true
-        
-        // Performance optimizations
+        webView.scrollView.showsVerticalScrollIndicator = true
         webView.scrollView.decelerationRate = UIScrollView.DecelerationRate.normal
+        
+        // Disable problematic gestures
         webView.allowsBackForwardNavigationGestures = false
+        webView.allowsLinkPreview = false
+        
+        // Prevent input field focus issues
+        webView.scrollView.keyboardDismissMode = .onDrag
         
         return webView
     }
     
     func updateUIView(_ webView: WKWebView, context: Context) {
         // Only reload if content actually changed
-        if webView.url?.absoluteString != "about:blank" {
-            webView.loadHTMLString(htmlContent, baseURL: nil)
-        } else {
+        let currentHTML = webView.url?.absoluteString
+        if currentHTML == nil || currentHTML == "about:blank" {
             webView.loadHTMLString(htmlContent, baseURL: nil)
         }
     }
@@ -303,14 +318,90 @@ struct OptimizedWebView: UIViewRepresentable {
         WebViewCoordinator()
     }
     
-    class WebViewCoordinator: NSObject, WKNavigationDelegate {
+    class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            // Optimize performance after loading
-            webView.evaluateJavaScript("document.body.style.webkitTouchCallout='none';")
+            // Enhanced post-load optimizations
+            let jsCode = """
+                // Disable text selection and callouts that can trigger input issues
+                document.body.style.webkitTouchCallout = 'none';
+                document.body.style.webkitUserSelect = 'none';
+                document.body.style.userSelect = 'none';
+                
+                // Fix button behaviors - prevent alerts, enable smooth scrolling
+                document.querySelectorAll('button, a[href^="#"]').forEach(element => {
+                    element.addEventListener('click', function(e) {
+                        const href = this.getAttribute('href');
+                        if (href && href.startsWith('#')) {
+                            e.preventDefault();
+                            const target = document.querySelector(href);
+                            if (target) {
+                                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }
+                    });
+                });
+                
+                // Remove any existing alerts and replace with smooth actions
+                window.alert = function(message) {
+                    console.log('Alert prevented:', message);
+                    // Create a subtle notification instead of alert
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed; top: 20px; right: 20px; 
+                        background: #007bff; color: white; 
+                        padding: 1rem; border-radius: 8px; 
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                        z-index: 10000; animation: slideIn 0.3s ease;
+                    `;
+                    notification.textContent = message;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOut 0.3s ease forwards';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                };
+                
+                // Add CSS for notifications
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+                    @keyframes slideOut { from { transform: translateX(0); } to { transform: translateX(100%); } }
+                `;
+                document.head.appendChild(style);
+            """
+            
+            webView.evaluateJavaScript(jsCode) { result, error in
+                if let error = error {
+                    print("JavaScript enhancement error: \(error)")
+                }
+            }
         }
         
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            print("WebView error: \(error.localizedDescription)")
+            print("WebView navigation error: \(error.localizedDescription)")
+        }
+        
+        // Handle JavaScript alerts and prompts
+        func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+            // Convert alerts to native iOS notifications
+            print("WebView alert intercepted: \(message)")
+            completionHandler()
+        }
+        
+        // Prevent prompt dialogs that could interfere
+        func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+            print("WebView prompt intercepted: \(prompt)")
+            completionHandler(nil)
+        }
+        
+        // Handle window.open calls properly
+        func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            // Prevent new windows that could cause issues
+            if let url = navigationAction.request.url {
+                webView.load(navigationAction.request)
+            }
+            return nil
         }
     }
 }
