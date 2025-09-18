@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ImprovedHistoryView: View {
+struct HistoryView: View {
     @EnvironmentObject var appState: AppStateManager
     @State private var searchText = ""
     @State private var selectedWebsite: Website?
@@ -315,7 +315,7 @@ struct StatBadge: View {
 }
 
 struct FilterPill: View {
-    let filter: ImprovedHistoryView.FilterOption
+    let filter: HistoryView.FilterOption
     let isSelected: Bool
     let onTap: () -> Void
     
@@ -554,6 +554,6 @@ struct DetailRow: View {
 }
 
 #Preview {
-    ImprovedHistoryView()
+    HistoryView()
         .environmentObject(AppStateManager())
 }

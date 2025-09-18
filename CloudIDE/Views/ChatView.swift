@@ -1,283 +1,522 @@
 import SwiftUI
 
 struct ChatView: View {
-    @StateObject private var apiService = APIService()
-    @State private var messageText = ""
-    @State private var messages: [ChatMessage] = []
-    @State private var isLoading = false
-    @State private var currentWebsite: Website?
-    @FocusState private var isTextFieldFocused: Bool
+    @Binding var currentWebsite: Website?
+    let onWebsiteGenerated: (Website) -> Void
     
-    var onWebsiteGenerated: (Website) -> Void
-    var isPreviewCollapsed: Bool = false
+    @StateObject private var viewModel = ChatViewModel()
+    @FocusState private var isTextFieldFocused: Bool
+    @State private var showQuickActions = false
+    @State private var showPreview = false
     
     var body: some View {
         ZStack {
-            // Beautiful CloudIDE Background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.4, green: 0.48, blue: 0.92), // #667eea
-                    Color(red: 0.46, green: 0.29, blue: 0.64)  // #764ba2
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            // Optimized subtle pattern overlay
-            Image(systemName: "cloud.fill")
-                .font(.system(size: 200))
-                .foregroundColor(.white.opacity(0.05))
-                .scaleEffect(1.5)
-                .allowsHitTesting(false) // Performance optimization
+            // Dynamic gradient background
+            AnimatedGradientBackground()
+                .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Enhanced Header
-                HStack {
-                    Image(systemName: "cloud.fill")
-                        .foregroundColor(.white)
-                        .font(.title2)
-                    Text("CloudIDE Chat")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    Spacer()
-                    
-                    // Status indicator
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(.green)
-                            .frame(width: 8, height: 8)
-                        Text("AI Ready")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
-                    }
+                // Enhanced Header with status and preview button
+                headerView
+                
+                // Messages area with advanced scrolling
+                messagesScrollView
+                
+                // Quick action suggestions
+                if showQuickActions && viewModel.messages.isEmpty {
+                    quickActionsView
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .background(.white.opacity(0.1))
-                )
-            
-            // Messages
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(messages) { message in
-                        MessageBubble(message: message)
-                    }
-                    
-                    if isLoading {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Generating website...")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Show preview collapsed indicator
-                    if isPreviewCollapsed && currentWebsite != nil {
-                        HStack {
-                            Image(systemName: "eye.slash")
-                                .foregroundColor(.orange)
-                            Text("Preview collapsed - Tap the expand button to view your website")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                    }
-                }
-                .padding(.vertical)
-            }
-            
-                // Enhanced Input Area
-                VStack(spacing: 0) {
-                    // Input container
-                    HStack(spacing: 12) {
-                        TextField("Describe the website you want to create...", text: $messageText, axis: .vertical)
-                            .focused($isTextFieldFocused)
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(.white.opacity(0.9))
-                            .cornerRadius(20)
-                            .lineLimit(1...4)
-                            .font(.body)
-                            .onSubmit {
-                                if !messageText.isEmpty {
-                                    sendMessage()
-                                }
-                            }
-                        
-                        Button(action: {
-                            sendMessage()
-                            isTextFieldFocused = false // Dismiss keyboard
-                        }) {
-                            Image(systemName: isLoading ? "stop.circle.fill" : "paperplane.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .padding(12)
-                                .background(
-                                    Circle()
-                                        .fill(messageText.isEmpty ? .gray.opacity(0.6) : .white.opacity(0.2))
-                                        .overlay(
-                                            Circle()
-                                                .stroke(.white.opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                        }
-                        .disabled(messageText.isEmpty || isLoading)
-                        .scaleEffect(messageText.isEmpty ? 0.9 : 1.0)
-                        .animation(.spring(response: 0.3), value: messageText.isEmpty)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(.ultraThinMaterial)
-                    .background(.white.opacity(0.1))
-                }
+                
+                // Enhanced input area
+                inputView
             }
         }
         .onTapGesture {
-            // Dismiss keyboard when tapping outside
             isTextFieldFocused = false
-        }
-    }
-    
-    private func sendMessage() {
-        guard !messageText.isEmpty else { return }
-        
-        let userMessage = ChatMessage(
-            id: UUID().uuidString,
-            text: messageText,
-            isUser: true,
-            timestamp: Date()
-        )
-        
-        messages.append(userMessage)
-        let prompt = messageText
-        messageText = ""
-        isLoading = true
-        
-        Task {
-            do {
-                let response = try await apiService.generateWebsite(prompt: prompt)
-                
-                let website = Website(
-                    id: response.id,
-                    title: response.title,
-                    prompt: response.prompt,
-                    html: response.html,
-                    timestamp: response.timestamp,
-                    description: response.description,
-                    industry: response.industry,
-                    source: response.source,
-                    aiGenerated: response.aiGenerated,
-                    optimizedPrompt: response.optimizedPrompt
-                )
-                
-                let assistantMessage = ChatMessage(
-                    id: UUID().uuidString,
-                    text: "I've generated \(response.displayTitle) based on your request. \(response.isAIGenerated ? "✨ AI-optimized" : "📋 Template-based") generation completed!",
-                    isUser: false,
-                    timestamp: Date()
-                )
-                
-                await MainActor.run {
-                    messages.append(assistantMessage)
-                    isLoading = false
-                    currentWebsite = website
-                    onWebsiteGenerated(website)
-                }
-            } catch {
-                await MainActor.run {
-                    let errorMessage = ChatMessage(
-                        id: UUID().uuidString,
-                        text: "Connection error: \(error.localizedDescription). Check your internet connection or try again.",
-                        isUser: false,
-                        timestamp: Date()
-                    )
-                    messages.append(errorMessage)
-                    isLoading = false
-                }
-                print("🔍 iOS App Error Details: \(error)")
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showQuickActions = false
             }
         }
-    }
-}
-
-struct ChatMessage: Identifiable, Equatable {
-    let id: String
-    let text: String
-    let isUser: Bool
-    let timestamp: Date
-    
-    var timeString: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: timestamp)
-    }
-}
-
-struct MessageBubble: View {
-    let message: ChatMessage
-    
-    var body: some View {
-        HStack {
-            if message.isUser {
-                Spacer()
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.5).delay(0.5)) {
+                showQuickActions = true
             }
-            
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
-                Text(message.text)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        Group {
-                            if message.isUser {
-                                // User message - CloudIDE gradient
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color(red: 0.4, green: 0.48, blue: 0.92),
-                                        Color(red: 0.46, green: 0.29, blue: 0.64)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            } else {
-                                // AI response - glass effect
-                                Rectangle()
-                                    .fill(.ultraThinMaterial)
-                                    .background(.white.opacity(0.8))
+        }
+        .onChange(of: viewModel.currentWebsite) { website in
+            if let website = website {
+                currentWebsite = website
+                onWebsiteGenerated(website)
+            }
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.errorMessage = nil
+            }
+            Button("Retry") {
+                viewModel.retryLastMessage()
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+        .sheet(isPresented: $showPreview) {
+            if let website = currentWebsite {
+                NavigationView {
+                        WebPreviewView(website: website)
+                        .navigationTitle("Website Preview")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button("Done") {
+                                    showPreview = false
+                                }
                             }
                         }
-                    )
-                    .foregroundColor(message.isUser ? .white : .primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                
-                Text(message.timestamp, style: .time)
-                    .font(.caption2)
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.horizontal, 4)
-            }
-            
-            if !message.isUser {
-                Spacer()
+                }
             }
         }
-        .padding(.horizontal)
+    }
+    
+    // MARK: - Header View
+    private var headerView: some View {
+        HStack {
+            // CloudIDE branding with animation
+            HStack(spacing: 8) {
+                Image(systemName: "cloud.fill")
+                    .foregroundColor(.white)
+                    .font(.title2)
+                    .scaleEffect(viewModel.isLoading ? 1.1 : 1.0)
+                    .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: viewModel.isLoading)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("CloudIDE")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text(viewModel.isLoading ? viewModel.generationProgress.displayText : "AI Website Generator")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.generationProgress)
+                }
+            }
+            
+            Spacer()
+            
+            HStack(spacing: 12) {
+                // Preview Button (only show when website exists)
+                if currentWebsite != nil {
+                    Button(action: {
+                        HapticFeedback.impact(.medium)
+                        showPreview = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "eye.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Preview")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(.white.opacity(0.2))
+                                .overlay(
+                                    Capsule()
+                                        .stroke(.white.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                    }
+                    .transition(.asymmetric(
+                        insertion: .scale.combined(with: .opacity),
+                        removal: .scale.combined(with: .opacity)
+                    ))
+                }
+                
+                // Status indicator
+                AnimatedStatusIndicator(status: viewModel.connectionStatus)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .background(.white.opacity(0.1))
+        )
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: currentWebsite != nil)
+    }
+    
+    // MARK: - Messages Scroll View
+    private var messagesScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    // Welcome state
+                    if viewModel.messages.isEmpty {
+                        welcomeView
+                            .transition(.asymmetric(
+                                insertion: .scale.combined(with: .opacity),
+                                removal: .scale.combined(with: .opacity)
+                            ))
+                    }
+                    
+                    // Messages
+                    ForEach(viewModel.messages) { message in
+                        AdvancedMessageBubble(message: message)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
+                    }
+                    
+                    // Loading indicator
+                    if viewModel.isLoading {
+                        SteppedProgressIndicator(progress: viewModel.generationProgress)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                    
+                    // Website generated success message
+                    if let website = currentWebsite, !viewModel.isLoading {
+                        websiteGeneratedCard(website: website)
+                            .transition(.asymmetric(
+                                insertion: .scale.combined(with: .opacity),
+                                removal: .scale.combined(with: .opacity)
+                            ))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 20)
+            }
+            .onChange(of: viewModel.messages.count) { _ in
+                // Auto-scroll to bottom with animation
+                if let lastMessage = viewModel.messages.last {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: viewModel.isLoading) { isLoading in
+                if !isLoading {
+                    // Scroll to show the result
+                    withAnimation(.easeInOut(duration: 0.5).delay(0.3)) {
+                        proxy.scrollTo("website-generated", anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Welcome View
+    private var welcomeView: some View {
+        VStack(spacing: 24) {
+            // Animated icon
+            ZStack {
+                Circle()
+                    .fill(.white.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                    .scaleEffect(showQuickActions ? 1.1 : 1.0)
+                
+                Image(systemName: "sparkles")
+                    .font(.system(size: 50, weight: .light))
+                    .foregroundColor(.white.opacity(0.9))
+                    .rotationEffect(.degrees(showQuickActions ? 5 : -5))
+            }
+            
+            VStack(spacing: 12) {
+                Text("Welcome to CloudIDE")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .opacity(showQuickActions ? 1 : 0)
+                
+                Text("Create stunning websites with AI")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                    .opacity(showQuickActions ? 1 : 0)
+            }
+            
+            // Feature highlights
+            VStack(alignment: .leading, spacing: 12) {
+                FeatureRow(icon: "wand.and.stars", text: "AI-powered website generation")
+                FeatureRow(icon: "paintbrush.fill", text: "Beautiful, responsive designs")
+                FeatureRow(icon: "square.and.arrow.down", text: "Download ready-to-use HTML")
+                FeatureRow(icon: "iphone", text: "Optimized for all devices")
+            }
+            .opacity(showQuickActions ? 1 : 0)
+        }
+        .animation(.easeInOut(duration: 1.2).delay(0.3), value: showQuickActions)
+    }
+    
+    // MARK: - Website Generated Card
+    private func websiteGeneratedCard(website: Website) -> some View {
+        EnhancedCard {
+            VStack(spacing: 16) {
+                // Success Header
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.successGreen)
+                        .font(.title2)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Website Generated!")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                        
+                        Text("Your \(website.displayTitle) is ready")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    TagView(
+                        text: website.isAIGenerated ? "AI" : "Template",
+                        color: website.isAIGenerated ? .cloudIDEPurple : .successGreen,
+                        size: .small
+                    )
+                }
+                
+                // Action Buttons
+                HStack(spacing: 12) {
+                    AnimatedButton(style: .primary, action: {
+                        showPreview = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "eye.fill")
+                            Text("View Website")
+                        }
+                    }
+                    
+                    AnimatedButton(style: .secondary, action: {
+                        // Share functionality
+                        shareWebsite(website)
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share")
+                        }
+                    }
+                }
+            }
+        }
+        .id("website-generated")
+    }
+    
+    // MARK: - Quick Actions View
+    private var quickActionsView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("✨ Quick Start")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(QuickAction.defaultActions) { action in
+                        QuickActionCard(
+                            action: action,
+                            onTap: {
+                                viewModel.useQuickPrompt(action.prompt)
+                                withAnimation(.cloudIDEEase) {
+                                    showQuickActions = false
+                                }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.bottom, 16)
+        .transition(.asymmetric(
+            insertion: .move(edge: .bottom).combined(with: .opacity),
+            removal: .move(edge: .bottom).combined(with: .opacity)
+        ))
+    }
+    
+    // MARK: - Input View
+    private var inputView: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Quick actions button - Fixed to always work
+                Button(action: {
+                    withAnimation(.cloudIDESpring) {
+                        showQuickActions.toggle()
+                    }
+                    HapticFeedback.selection()
+                }) {
+                    Image(systemName: showQuickActions ? "xmark.circle.fill" : "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.white.opacity(0.8))
+                        .scaleEffect(isTextFieldFocused ? 0.8 : 1.0)
+                        .animation(.spring(response: 0.3), value: isTextFieldFocused)
+                        .animation(.spring(response: 0.3), value: showQuickActions)
+                }
+                .disabled(viewModel.isLoading)
+                
+                // Enhanced text field
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(.white.opacity(0.9))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 22)
+                                .stroke(.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .frame(height: 44)
+                    
+                    TextField("Describe your dream website...", text: $viewModel.messageText, axis: .vertical)
+                        .focused($isTextFieldFocused)
+                        .textFieldStyle(.plain)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .font(.body)
+                        .lineLimit(1...5)
+                        .onSubmit {
+                            if !viewModel.messageText.isEmpty {
+                                sendMessage()
+                            }
+                        }
+                }
+                
+                // Enhanced send button
+                Button(action: sendMessage) {
+                    Image(systemName: viewModel.isLoading ? "stop.circle.fill" : "paperplane.fill")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(viewModel.messageText.isEmpty ? .gray.opacity(0.6) : .white.opacity(0.2))
+                                .overlay(
+                                    Circle()
+                                        .stroke(.white.opacity(0.4), lineWidth: 1)
+                                )
+                        )
+                        .scaleEffect(viewModel.messageText.isEmpty ? 0.9 : 1.0)
+                        .rotationEffect(.degrees(viewModel.isLoading ? 180 : 0))
+                }
+                .disabled(viewModel.messageText.isEmpty && !viewModel.isLoading)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.messageText.isEmpty)
+                .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial)
+            .background(.white.opacity(0.1))
+        }
+    }
+    
+    // MARK: - Helper Methods
+    private func sendMessage() {
+        // Reset quick actions after sending
+        withAnimation(.cloudIDEEase) {
+            showQuickActions = false
+        }
+        
+        // Clear current website to show new generation
+        currentWebsite = nil
+        
+        // Send message through view model
+        viewModel.sendMessage()
+    }
+    
+    private func shareWebsite(_ website: Website) {
+        // Create temporary HTML file and share
+        let fileName = "\(website.displayTitle.replacingOccurrences(of: " ", with: "_")).html"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        
+        do {
+            try website.html.write(to: tempURL, atomically: true, encoding: .utf8)
+            
+            let activityViewController = UIActivityViewController(
+                activityItems: [
+                    "🚀 Check out this amazing website I created with CloudIDE: \(website.displayTitle)",
+                    tempURL
+                ],
+                applicationActivities: nil
+            )
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                window.rootViewController?.present(activityViewController, animated: true)
+            }
+        } catch {
+            print("Error sharing website: \(error)")
+        }
+    }
+}
+
+// MARK: - Supporting Views
+struct QuickActionCard: View {
+    let action: QuickAction
+    let onTap: () -> Void
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: {
+            HapticFeedback.impact(.light)
+            onTap()
+        }) {
+            VStack(spacing: 8) {
+                Text(action.emoji)
+                    .font(.title2)
+                
+                Text(action.title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+            .frame(width: 120, height: 80)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.white.opacity(isPressed ? 0.3 : 0.2))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(.white.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = pressing
+            }
+        }, perform: {})
+    }
+}
+
+struct FeatureRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white.opacity(0.8))
+                .frame(width: 20)
+            
+            Text(text)
+                .font(.body)
+                .foregroundColor(.white.opacity(0.8))
+            
+            Spacer()
+        }
     }
 }
 
 #Preview {
-    ChatView { _ in }
+    ChatView(
+        currentWebsite: .constant(nil),
+        onWebsiteGenerated: { _ in }
+    )
 }

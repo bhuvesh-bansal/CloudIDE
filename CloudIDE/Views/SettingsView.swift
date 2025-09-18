@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ImprovedSettingsView: View {
+struct SettingsView: View {
     @EnvironmentObject var appState: AppStateManager
     @State private var showAbout = false
     @State private var showClearDataAlert = false
@@ -34,7 +34,7 @@ struct ImprovedSettingsView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .sheet(isPresented: $showAbout) {
-            ImprovedAboutView()
+            AboutView()
         }
         .alert("Clear All Data", isPresented: $showClearDataAlert) {
             Button("Cancel", role: .cancel) { }
@@ -520,6 +520,6 @@ struct StatItem: View {
 }
 
 #Preview {
-    ImprovedSettingsView()
+    SettingsView()
         .environmentObject(AppStateManager())
 }

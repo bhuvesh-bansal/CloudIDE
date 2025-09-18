@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AdvancedContentView: View {
+struct ContentView: View {
     @State private var currentWebsite: Website?
     @State private var isPreviewCollapsed = false
     @State private var selectedTab: MainTab = .chat
@@ -149,7 +149,7 @@ struct AdvancedContentView: View {
     private var iPhoneLayout: some View {
         TabView(selection: $selectedTab) {
             // Chat Tab
-            ChatWithPreviewView(
+            ChatView(
                 currentWebsite: $currentWebsite,
                 onWebsiteGenerated: { website in
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -164,14 +164,14 @@ struct AdvancedContentView: View {
             .tag(MainTab.chat)
             
             // History Tab
-            ImprovedHistoryView()
+            HistoryView()
                 .tabItem {
                     Label(MainTab.history.rawValue, systemImage: MainTab.history.icon)
                 }
                 .tag(MainTab.history)
             
             // Settings Tab
-            ImprovedSettingsView()
+            SettingsView()
                 .tabItem {
                     Label(MainTab.settings.rawValue, systemImage: MainTab.settings.icon)
                 }
@@ -567,5 +567,5 @@ struct AboutView: View {
 }
 
 #Preview {
-    AdvancedContentView()
+    ContentView()
 }

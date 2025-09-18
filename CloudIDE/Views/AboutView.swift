@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ImprovedAboutView: View {
+struct AboutView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showFeatureDetails = false
     @State private var selectedFeature: AppFeature?
@@ -513,5 +513,5 @@ struct FeatureDetailSheet: View {
 }
 
 #Preview {
-    ImprovedAboutView()
+    AboutView()
 }
