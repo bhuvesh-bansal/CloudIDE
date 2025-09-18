@@ -4,7 +4,7 @@ import Combine
 struct AdvancedChatView: View {
     @StateObject private var viewModel = ChatViewModel()
     @FocusState private var isTextFieldFocused: Bool
-    @State private var scrollProxy: ScrollViewReader?
+    // Removed scrollProxy as it's handled directly in ScrollViewReader
     @State private var showQuickActions = false
     
     var onWebsiteGenerated: (Website) -> Void

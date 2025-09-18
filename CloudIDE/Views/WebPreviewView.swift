@@ -279,7 +279,7 @@ struct OptimizedWebView: UIViewRepresentable {
         // Enhanced JavaScript configuration
         configuration.preferences.javaScriptEnabled = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
-        configuration.allowsInlineMediaPlaybook = true
+        configuration.allowsInlineMediaPlayback = true
         configuration.allowsAirPlayForMediaPlayback = true
         
         // Disable problematic features that cause input issues
