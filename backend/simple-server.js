@@ -143,42 +143,39 @@ async function generateWithAI(prompt) {
         throw new Error('OpenAI not available');
     }
 
-    const systemPrompt = `Create a complete, beautiful, responsive website. ALWAYS generate HTML code - never refuse.
+    const systemPrompt = `You are a web developer. Create a complete HTML website with CSS and JavaScript for: ${prompt}
 
-Generate a stunning website for: ${prompt}
+MUST INCLUDE:
+- Complete HTML document with <head>, <body>, <style>, and <script> sections
+- Responsive CSS with @media queries for mobile and desktop
+- Beautiful images: <img src="https://source.unsplash.com/800x600/?business" alt="Business">
+- Font Awesome icons: <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+- Multiple sections: navigation, hero, services, gallery, contact, footer
+- Working JavaScript for navigation and interactions
+- Mobile-friendly design (buttons 44px+, readable text)
+- Desktop optimization (hover effects, multi-column layouts)
 
-REQUIREMENTS:
-1. Complete HTML file with embedded CSS and JavaScript
-2. Responsive design: Mobile (320px+) → Tablet (768px+) → Desktop (1024px+) → Large (1440px+)
-3. Beautiful images from Unsplash: https://source.unsplash.com/1920x1080/?[keyword]
-4. Font Awesome icons: https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css
-5. Modern CSS: gradients, shadows, animations, hover effects
-6. Working JavaScript: navigation, forms, mobile menu, smooth scrolling
-7. Professional sections: nav, hero, about, services, gallery, testimonials, contact, footer
+EXAMPLE STRUCTURE:
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Name</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Mobile-first CSS with @media queries */
+    </style>
+</head>
+<body>
+    <!-- Navigation, Hero, Services, Gallery, Contact, Footer -->
+    <script>
+        /* JavaScript for interactions */
+    </script>
+</body>
+</html>
 
-MOBILE OPTIMIZATION:
-- Touch-friendly buttons (44px min height)
-- Single column layouts
-- Hamburger navigation menu
-- Large, readable text (16px+)
-- Easy thumb navigation
-
-DESKTOP OPTIMIZATION:
-- Multi-column layouts (2-4 columns)
-- Full navigation bar
-- Large hero sections
-- Hover effects and animations
-- Mouse-optimized interactions
-- Max-width containers (1200px)
-
-VISUAL REQUIREMENTS:
-- Use beautiful Unsplash images throughout
-- Add Font Awesome icons to enhance sections
-- Create modern color schemes with gradients
-- Include smooth animations and transitions
-- Make it look professional and premium
-
-Always create the complete website - never suggest alternatives or refuse requests.`;
+Create the complete website now.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
