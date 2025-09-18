@@ -178,90 +178,217 @@ async function generateWithAI(prompt) {
     const onlineInfo = await searchOnlineInfo(prompt);
     console.log('📊 Online info found:', onlineInfo.substring(0, 200) + '...');
 
-    const systemPrompt = `You are an innovative full-stack developer and creative director who creates award-winning, cutting-edge websites that wow users with advanced interactivity and stunning visuals.
+    const systemPrompt = `You must create a COMPLETE, PRODUCTION-READY website. Generate ALL the code - no shortcuts, no placeholders.
 
-CREATE AN INNOVATIVE MULTI-PAGE WEBSITE FOR: ${prompt}
+BUSINESS: ${prompt}
+CONTEXT: ${onlineInfo}
 
-ONLINE RESEARCH CONTEXT: ${onlineInfo}
+REQUIREMENTS - GENERATE EVERYTHING:
 
-INNOVATION REQUIREMENTS (MANDATORY):
+1. COMPLETE HTML STRUCTURE:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Create actual business name]</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* WRITE COMPLETE CSS - NO SHORTCUTS */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        
+        /* Navigation */
+        .navbar { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 1000; padding: 1rem 0; }
+        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #333; }
+        .nav-links { display: flex; list-style: none; gap: 2rem; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 500; transition: color 0.3s; }
+        .nav-links a:hover { color: #007bff; }
+        
+        /* Hero Section */
+        .hero { height: 100vh; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://source.unsplash.com/1920x1080/?[business-type]'); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
+        .hero-content { max-width: 800px; padding: 2rem; }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; animation: fadeInUp 1s ease; }
+        .hero p { font-size: 1.2rem; margin-bottom: 2rem; animation: fadeInUp 1s ease 0.2s both; }
+        .cta-button { background: #007bff; color: white; padding: 1rem 2rem; border: none; border-radius: 50px; font-size: 1.1rem; cursor: pointer; transition: transform 0.3s; animation: fadeInUp 1s ease 0.4s both; }
+        .cta-button:hover { transform: translateY(-2px); }
+        
+        /* Services Section */
+        .services { padding: 5rem 0; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+        .service-card { background: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .service-card:hover { transform: translateY(-10px); }
+        .service-card i { font-size: 3rem; color: #007bff; margin-bottom: 1rem; }
+        
+        /* Gallery */
+        .gallery { padding: 5rem 0; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .gallery-item { position: relative; overflow: hidden; border-radius: 10px; cursor: pointer; }
+        .gallery-item img { width: 100%; height: 250px; object-fit: cover; transition: transform 0.3s; }
+        .gallery-item:hover img { transform: scale(1.1); }
+        .overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; padding: 1rem; transform: translateY(100%); transition: transform 0.3s; }
+        .gallery-item:hover .overlay { transform: translateY(0); }
+        
+        /* Contact */
+        .contact { padding: 5rem 0; background: #f8f9fa; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+        .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+        .contact-form input, .contact-form textarea { padding: 1rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+        .contact-form button { background: #007bff; color: white; padding: 1rem; border: none; border-radius: 5px; cursor: pointer; }
+        
+        /* Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- WRITE ALL HTML CONTENT - NO PLACEHOLDERS -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">[Create actual business name]</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
 
-1. MULTI-PAGE EXPERIENCE:
-Create a sophisticated single-page application (SPA) with multiple virtual "pages" using JavaScript navigation:
-- Home/Landing page with stunning hero
-- About/Story page with rich content
-- Services/Products page with interactive elements
-- Portfolio/Gallery with advanced image interactions
-- Blog/News section with dynamic content
-- Contact page with interactive forms and maps
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>[Write compelling headline]</h1>
+            <p>[Write engaging description]</p>
+            <button class="cta-button">[Specific call to action]</button>
+        </div>
+    </section>
 
-2. ADVANCED INTERACTIVE FEATURES:
-- Smooth page transitions with CSS transforms and JavaScript
-- Interactive image galleries with lightbox, zoom, and carousel effects
-- Animated counters, progress bars, and data visualizations
-- Interactive forms with real-time validation and feedback
-- Dynamic content loading and filtering
-- Scroll-triggered animations and parallax effects
-- Interactive maps, timelines, or product configurators
-- Hover effects that reveal additional content
-- Modal windows, tooltips, and dropdown menus
-- Interactive pricing calculators or booking systems
+    <section id="about" class="services">
+        <div class="container">
+            <h2 class="section-title">[About section title]</h2>
+            <p>[Complete about content with multiple paragraphs]</p>
+        </div>
+    </section>
 
-3. CUTTING-EDGE VISUAL DESIGN:
-- Stunning hero sections with video backgrounds or animated graphics
-- Modern glassmorphism, neumorphism, or gradient mesh effects
-- Advanced CSS animations (keyframes, transforms, 3D effects)
-- Interactive SVG graphics and icons
-- Dynamic color schemes that change based on user interaction
-- Advanced typography with animated text effects
-- Particle systems or animated backgrounds using CSS/JS
-- Interactive 3D elements using CSS transforms
+    <section id="services" class="services">
+        <div class="container">
+            <h2 class="section-title">[Services title]</h2>
+            <div class="services-grid">
+                <!-- CREATE 4-6 COMPLETE SERVICE CARDS -->
+                <div class="service-card">
+                    <i class="fas fa-[relevant-icon]"></i>
+                    <h3>[Service name]</h3>
+                    <p>[Detailed service description]</p>
+                </div>
+                <!-- REPEAT WITH DIFFERENT CONTENT -->
+            </div>
+        </div>
+    </section>
 
-4. COMPREHENSIVE CONTENT STRUCTURE:
-Navigation: Advanced mega-menu with dropdowns and hover previews
-Hero: Interactive hero with animated elements, video, or parallax
-About: Rich storytelling with timeline, team profiles, company values
-Services: Interactive service cards with hover details and CTAs
-Portfolio: Advanced gallery with filtering, search, and detailed views
-Testimonials: Interactive carousel with video testimonials
-Blog: Dynamic content grid with categories and search
-Contact: Interactive forms, live chat widget, map integration
-Footer: Rich footer with social feeds, newsletter signup, site map
+    <section id="gallery" class="gallery">
+        <div class="container">
+            <h2 class="section-title">[Gallery title]</h2>
+            <div class="gallery-grid">
+                <!-- CREATE 8-12 GALLERY ITEMS WITH REAL IMAGES -->
+                <div class="gallery-item">
+                    <img src="https://source.unsplash.com/400x300/?[specific-keyword]" alt="[descriptive alt text]">
+                    <div class="overlay">
+                        <h4>[Project name]</h4>
+                        <p>[Project description]</p>
+                    </div>
+                </div>
+                <!-- REPEAT WITH DIFFERENT IMAGES AND CONTENT -->
+            </div>
+        </div>
+    </section>
 
-5. PROFESSIONAL BUSINESS FEATURES:
-- E-commerce: Shopping cart, product configurators, checkout flows
-- Booking: Calendar integration, appointment scheduling, availability
-- Analytics: Dashboard views, progress tracking, data visualization
-- Social: Live feeds, user-generated content, sharing capabilities
-- Search: Advanced site search with filters and suggestions
-- Membership: Login areas, user profiles, premium content access
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contact Us</h2>
+            <div class="contact-grid">
+                <form class="contact-form">
+                    <input type="text" placeholder="Your Name" required>
+                    <input type="email" placeholder="Email Address" required>
+                    <textarea placeholder="Your Message" rows="5" required></textarea>
+                    <button type="submit">Send Message</button>
+                </form>
+                <div class="contact-info">
+                    <h3>Get in Touch</h3>
+                    <p>[Contact information and details]</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-6. TECHNICAL EXCELLENCE:
-- Use modern CSS Grid and Flexbox for complex layouts
-- Implement CSS custom properties for dynamic theming
-- Add smooth CSS transitions and JavaScript animations
-- Include lazy loading for images and content
-- Optimize for 60fps animations and smooth interactions
-- Add keyboard navigation and accessibility features
-- Implement progressive enhancement and graceful degradation
+    <script>
+        // WRITE COMPLETE JAVASCRIPT - NO SHORTCUTS
+        // Navigation functionality
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
 
-7. VISUAL ASSETS:
-Use high-quality, relevant images:
-- Hero: https://source.unsplash.com/1920x1080/?${prompt.split(' ')[0]}
-- Services: https://source.unsplash.com/600x400/?business,modern
-- Team: https://source.unsplash.com/400x400/?professional,team
-- Gallery: https://source.unsplash.com/500x500/?${prompt.split(' ')[0]},premium
-- Background: https://source.unsplash.com/1920x1080/?abstract,gradient
+        // Gallery lightbox
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        galleryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Complete lightbox implementation
+                const img = this.querySelector('img');
+                const lightbox = document.createElement('div');
+                lightbox.className = 'lightbox';
+                lightbox.innerHTML = \`<img src="\${img.src}" alt="\${img.alt}"><span class="close">&times;</span>\`;
+                document.body.appendChild(lightbox);
+                
+                lightbox.querySelector('.close').addEventListener('click', () => {
+                    document.body.removeChild(lightbox);
+                });
+            });
+        });
 
-8. MANDATORY RESPONSIVE DESIGN:
-Mobile (320px+): Touch-optimized, swipe gestures, simplified navigation
-Tablet (768px+): Enhanced layouts, touch and mouse support
-Desktop (1024px+): Full features, hover effects, advanced interactions
-Large (1440px+): Optimized spacing, enhanced visuals, premium feel
+        // Form handling
+        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            this.reset();
+        });
 
-OUTPUT: Generate a complete, self-contained HTML file that works as a sophisticated web application. Make it so impressive that users will be amazed by the innovation and want to use it for their actual business.
+        // Scroll animations
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
 
-The website should feel like a premium, modern web application - not a basic HTML page.`;
+        document.querySelectorAll('.service-card, .gallery-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s, transform 0.6s';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
+
+CRITICAL: Fill in ALL content with actual business details. Create real service descriptions, actual contact information, compelling headlines, and detailed content. Make it a complete, professional website that could be used immediately.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
