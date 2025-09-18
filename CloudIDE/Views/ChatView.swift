@@ -117,16 +117,6 @@ struct ChatView: View {
                                     sendMessage()
                                 }
                             }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    Spacer()
-                                    Button("Done") {
-                                        isTextFieldFocused = false
-                                    }
-                                    .foregroundColor(Color(red: 0.4, green: 0.48, blue: 0.92))
-                                    .fontWeight(.semibold)
-                                }
-                            }
                         
                         Button(action: {
                             sendMessage()

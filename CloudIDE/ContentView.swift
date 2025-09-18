@@ -43,48 +43,33 @@ struct ContentView: View {
             .navigationTitle("Cloud IDE")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // Preview toggle button (top left)
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if currentWebsite != nil {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                isPreviewCollapsed.toggle()
+                            }
+                        }) {
+                            Image(systemName: isPreviewCollapsed ? "eye" : "eye.slash")
+                                .foregroundColor(.blue)
+                                .font(.title3)
+                        }
+                    }
+                }
+                
+                // Sidebar toggle button (top right) - horizontal icon for landscape
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             isPreviewCollapsed.toggle()
                         }
                     }) {
-                        Image(systemName: isPreviewCollapsed ? "rectangle.expand.vertical" : "rectangle.compress.vertical")
+                        Image(systemName: isPreviewCollapsed ? "sidebar.right" : "rectangle.split.2x1")
                             .foregroundColor(.blue)
                     }
                 }
             }
-            .overlay(
-                // Floating action button when preview is collapsed and website exists
-                Group {
-                    if isPreviewCollapsed && currentWebsite != nil {
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        isPreviewCollapsed = false
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "eye")
-                                        Text("Show Preview")
-                                    }
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .background(Color.blue)
-                                    .cornerRadius(25)
-                                    .shadow(radius: 4)
-                                }
-                                .padding(.trailing, 20)
-                                .padding(.bottom, 20)
-                            }
-                        }
-                    }
-                }
-            )
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
