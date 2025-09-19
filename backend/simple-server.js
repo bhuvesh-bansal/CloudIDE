@@ -304,39 +304,60 @@ async function generateWithAI(prompt, usePageByPage = false) {
         console.log('🚀 Using single-prompt generation for:', prompt);
     }
 
-    const systemPrompt = `You are an expert full-stack web developer.  
-Generate a complete, production-ready multi-page website project in a single response.  
+    const systemPrompt = `Generate a complete website with separate files for: ${prompt}
 
-### Requirements:
-1. The project description is: ${prompt}.  
-2. Output the full project in a structured format with multiple files. Organize it like this:
-   - index.html (homepage)  
-   - about.html (about page)  
-   - [other pages based on project, e.g., products.html, contact.html]  
-   - assets/ (CSS + JS + images placeholders)  
-     - style.css  
-     - script.js  
-3. All pages must share the same header, footer, and design system.  
-4. The site must be **responsive** (desktop, tablet, mobile).  
-5. Use modern, clean **HTML5 + CSS3 + JavaScript** only (no build tools required).  
-6. Use semantic HTML and accessibility best practices.  
-7. Use these curated images: ${JSON.stringify(imageSet)} and placeholder images where needed.  
-8. Keep each file under ~400 lines so nothing is truncated.  
-9. At the very end of your response, output a short "Usage" note:
-   - how to save files into a folder  
-   - how to open \`index.html\` locally in a browser  
+Output format:
+**index.html**
+\`\`\`html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Business Name</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+        </nav>
+    </header>
+    <main>
+        <h1>Welcome to Business</h1>
+        <p>Professional description here</p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Business Name</p>
+    </footer>
+    <script src="assets/script.js"></script>
+</body>
+</html>
+\`\`\`
 
-### Important:
-- Do not skip any files.  
-- Wrap each file's contents in a clear code block labeled with its filename.  
-- Make sure all internal links work (e.g., \`<a href="about.html">About</a>\`).  
+**assets/style.css**
+\`\`\`css
+body { font-family: Arial, sans-serif; margin: 0; }
+header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; }
+nav a { color: white; margin: 0 15px; text-decoration: none; }
+main { padding: 40px 20px; }
+footer { background: #333; color: white; padding: 20px; text-align: center; }
+@media (max-width: 768px) { nav a { display: block; margin: 10px 0; } }
+\`\`\`
 
-Now, generate the full website project for: ${prompt}.`;
+**assets/script.js**
+\`\`\`javascript
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Website loaded');
+    // Add smooth scrolling and interactions
+});
+\`\`\`
+
+Generate files like this for ${prompt} with actual content:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
-            { role: "system", content: "You are an expert web developer. Generate a complete multi-file website project. Output multiple files (index.html, about.html, style.css, script.js) with proper code blocks and filenames. NO placeholders or incomplete code. Generate REAL working websites with actual CSS and JavaScript." },
+            { role: "system", content: "You are a web developer. You MUST generate COMPLETE working code. NO placeholder comments like '<!-- Header content here -->' or '/* Add CSS here */'. Write ACTUAL HTML content, ACTUAL CSS styles, and ACTUAL JavaScript functions. Fill in ALL content completely." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000, // Optimized for complete websites
