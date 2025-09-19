@@ -1,4 +1,5 @@
 import SwiftUI
+import WebKit
 
 struct ChatView: View {
     @Binding var currentWebsite: Website?
@@ -492,7 +493,6 @@ struct FeatureRow: View {
 struct OptimizedPreviewView: View {
     let website: Website?
     @Environment(\.dismiss) var dismiss
-    @State private var isLoading = true
     
     var body: some View {
         NavigationView {
@@ -531,7 +531,7 @@ struct OptimizedPreviewView: View {
                             .background(.ultraThinMaterial)
                             
                             // Lightweight WebView
-                            OptimizedWebView(html: website.html, isLoading: $isLoading)
+                            WebPreviewView(website: website)
                         }
                     }
                 } else {
@@ -602,90 +602,6 @@ struct OptimizedPreviewView: View {
     private func copyToClipboard(_ html: String) {
         UIPasteboard.general.string = html
         // Could add a toast notification here
-    }
-}
-
-// MARK: - Optimized WebView
-struct OptimizedWebView: UIViewRepresentable {
-    let html: String
-    @Binding var isLoading: Bool
-    
-    func makeUIView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        
-        // Optimize for performance
-        config.suppressesIncrementalRendering = false
-        config.allowsInlineMediaPlayback = true
-        config.allowsAirPlayForMediaPlayback = false
-        config.allowsPictureInPictureMediaPlayback = false
-        
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.navigationDelegate = context.coordinator
-        webView.isOpaque = false
-        webView.backgroundColor = UIColor.clear
-        webView.scrollView.backgroundColor = UIColor.clear
-        
-        // Disable problematic features for performance
-        webView.allowsBackForwardNavigationGestures = false
-        webView.allowsLinkPreview = false
-        
-        return webView
-    }
-    
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        if webView.url == nil {
-            webView.loadHTMLString(html, baseURL: nil)
-        }
-    }
-    
-    func makeCoordinator() -> OptimizedWebViewCoordinator {
-        OptimizedWebViewCoordinator(isLoading: $isLoading)
-    }
-}
-
-class OptimizedWebViewCoordinator: NSObject, WKNavigationDelegate {
-    @Binding var isLoading: Bool
-    
-    init(isLoading: Binding<Bool>) {
-        self._isLoading = isLoading
-    }
-    
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        DispatchQueue.main.async {
-            self.isLoading = true
-        }
-    }
-    
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        DispatchQueue.main.async {
-            self.isLoading = false
-        }
-        
-        // Minimal JavaScript for better mobile experience
-        let js = """
-            document.body.style.webkitTouchCallout = 'none';
-            document.body.style.webkitUserSelect = 'none';
-            document.body.style.userSelect = 'none';
-            
-            // Smooth scrolling for anchor links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
-            });
-        """
-        
-        webView.evaluateJavaScript(js, completionHandler: nil)
-    }
-    
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        DispatchQueue.main.async {
-            self.isLoading = false
-        }
     }
 }
 
