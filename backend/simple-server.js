@@ -343,86 +343,33 @@ async function generateWithAI(prompt) {
         throw new Error('OpenAI not available');
     }
 
-    // Get online information and image set for more accurate content
-    console.log('🔍 Searching online for:', prompt);
-    const onlineInfo = await searchOnlineInfo(prompt);
-    console.log('📊 Online info found:', onlineInfo.substring(0, 200) + '...');
+    // Simplified approach - focus on core generation
+    console.log('🚀 Generating website for:', prompt);
     
     // Get curated image set for this website
     const industry = detectIndustry(prompt);
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `Create a complete, professional website. NEVER use placeholders or incomplete code.
+    const systemPrompt = `Create a complete HTML website for: ${prompt}
 
-Build a full website for: ${prompt}
-Use this research: ${onlineInfo}
-Use these curated images: ${JSON.stringify(imageSet)}
+Requirements:
+- Single HTML file with embedded CSS and JavaScript
+- Professional responsive design
+- Real content (no placeholders)
+- Use these images: ${JSON.stringify(imageSet)}
+- Include: navigation, hero, services, contact sections
+- Mobile-friendly design
+- Working JavaScript interactions
 
-MANDATORY: Generate a complete HTML file with:
-- Complete CSS styling (minimum 100 lines)
-- Working JavaScript interactions (minimum 50 lines)  
-- Real business content (no placeholders like [add content])
-- Multiple sections: nav, hero, about, services, gallery, contact, footer
-- Responsive design with @media queries
-- Beautiful curated images (use the provided imageSet URLs)
-- Font Awesome icons
-- Interactive features that work in mobile WebViews
-
-IMAGE USAGE INSTRUCTIONS:
-- Hero section: Use imageSet.hero for main background
-- Services section: Use imageSet.services[0], imageSet.services[1], etc.
-- Gallery section: Use imageSet.gallery[0] through imageSet.gallery[5]
-- Team section: Use imageSet.team[0], imageSet.team[1], imageSet.team[2]
-- About section: Use imageSet.about
-- Contact section: Use imageSet.contact
-
-IMPORTANT JAVASCRIPT RULES:
-- Use smooth scrolling for navigation (scrollIntoView with behavior: 'smooth')
-- Replace alert() with console.log() or custom notifications
-- Use addEventListener instead of inline onclick handlers
-- Avoid prompt() and confirm() dialogs
-- Use CSS transitions instead of complex animations
-- Make all interactions touch-friendly for mobile
-- All images load reliably (no external API dependencies)
-
-Example output should be a complete website like this:
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Actual Business Name</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        /* Complete CSS code here - minimum 100 lines */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        /* All styling for nav, hero, services, gallery, contact, responsive */
-    </style>
-</head>
-<body>
-    <!-- Complete HTML with all sections and real content -->
-    <nav><!-- Working navigation --></nav>
-    <section class="hero"><!-- Hero with real headline and description --></section>
-    <section class="services"><!-- Service cards with actual descriptions --></section>
-    <section class="gallery"><!-- Image gallery with real photos --></section>
-    <section class="contact"><!-- Working contact form --></section>
-    <footer><!-- Complete footer --></footer>
-    
-    <script>
-        /* Complete JavaScript - minimum 50 lines */
-        /* Working navigation, gallery, forms, animations */
-    </script>
-</body>
-</html>
-
-Generate the complete website now with ALL code and content filled in.`;
+Generate ONLY the HTML code - nothing else.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
             { role: "user", content: systemPrompt }
         ],
-        max_tokens: 4096, // Maximum for GPT-3.5-turbo
+        max_tokens: 4096, // Sufficient for complete HTML
         temperature: 0.8   // Higher creativity for better designs
     });
 
