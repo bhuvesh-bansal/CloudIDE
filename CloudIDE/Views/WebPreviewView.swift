@@ -282,9 +282,7 @@ struct OptimizedWebView: UIViewRepresentable {
         configuration.allowsInlineMediaPlayback = true
         configuration.allowsAirPlayForMediaPlayback = true
         
-        // Disable problematic features that cause input issues
-        configuration.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
-        configuration.preferences.setValue(false, forKey: "allowUniversalAccessFromFileURLs")
+        // Modern WebKit security settings are handled automatically
         
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
