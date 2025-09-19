@@ -351,43 +351,21 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `Generate HTML code for: ${prompt}
+    const systemPrompt = `You are an expert frontend developer. Produce a single-file, production-ready website as a SHORT, COMPLETE package.
 
-MUST include:
-- <style> tag with CSS
-- <script> tag with JavaScript
-- Modern design with gradients
-- Responsive layout
+Requirements:
+1. Output exactly one file named index.html and nothing else. Put HTML, CSS (in <style>) and JavaScript (in <script>) all in that file.
+2. The page must be fully responsive (desktop / tablet / mobile) and visually modern.
+3. Keep the whole file concise (approx 200–600 lines). Use minimal but clear code.
+4. Include: header with nav, hero, 2–3 content sections, example data (3–6 items if relevant), contact/footer, and a small interactive feature (search, filter, or modal).
+5. Use semantic HTML, accessible attributes (alt, aria-*), and comments for sections.
+6. For images use these curated URLs: ${JSON.stringify(imageSet)} and include one example of lazy loading.
+7. No backend — any form should use \`mailto:\` or show a "Thanks — form submitted (demo)" message.
+8. At the top of the file include a short comment listing any commands the user must run (if any). If there are no external dependencies, say "No build step required."
+9. Keep code clean and avoid external libraries. If you must reference a CDN, keep it to one small script and justify it in a 1-line comment.
+10. At the end, output a 3-line plain-text usage note (how to view file locally).
 
-Example structure:
-<!DOCTYPE html>
-<html>
-<head>
-<title>Business</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Arial', sans-serif; }
-.hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 20px; text-align: center; }
-.services { padding: 80px 20px; background: #f8f9fa; }
-@media (max-width: 768px) { .hero { padding: 60px 20px; } }
-</style>
-</head>
-<body>
-<nav><a href="#home">Home</a></nav>
-<div class="hero"><h1>Title</h1></div>
-<div class="services"><h2>Services</h2></div>
-<script>
-document.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', e => {
-        e.preventDefault();
-        document.querySelector(a.getAttribute('href')).scrollIntoView({behavior: 'smooth'});
-    });
-});
-</script>
-</body>
-</html>
-
-Generate complete HTML like this for ${prompt}:`;
+Now generate index.html for: ${prompt}.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
