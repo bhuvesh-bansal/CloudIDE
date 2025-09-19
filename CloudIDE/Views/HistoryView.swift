@@ -110,7 +110,6 @@ struct HistoryView: View {
                 }
             }
             .background(Color.dynamicBackground)
-            .navigationTitle("Website History")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
