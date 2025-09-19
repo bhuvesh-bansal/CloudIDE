@@ -351,36 +351,20 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `Generate HTML for: ${prompt}
+    const systemPrompt = `You are an expert full-stack web developer.  
+Generate a complete, production-ready, responsive website based on the following description:  
 
-Example format:
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Business Name</title>
-    <style>
-        body { font-family: Arial; margin: 0; }
-        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 20px; text-align: center; }
-        .services { padding: 60px 20px; }
-        /* Add more CSS */
-    </style>
-</head>
-<body>
-    <nav><a href="#home">Home</a> <a href="#services">Services</a></nav>
-    <div class="hero"><h1>Welcome</h1><p>Description</p></div>
-    <div class="services"><h2>Our Services</h2></div>
-    <script>
-        document.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'});
-            });
-        });
-    </script>
-</body>
-</html>
+${prompt}
 
-Generate similar complete HTML for ${prompt} now:`;
+### Requirements:
+1. The website should use **HTML, CSS, and JavaScript** in a single file.  
+2. It must be **fully responsive** (desktop, tablet, mobile).  
+3. Include **dummy data, images, and text** where real data is missing.  
+4. Use a **modern clean UI/UX design** with proper sections, navigation, and footer.  
+5. The website should be **ready to deploy** as-is.
+6. Use these curated images: ${JSON.stringify(imageSet)}
+
+Now generate the complete website code starting with <!DOCTYPE html>`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
