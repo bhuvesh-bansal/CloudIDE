@@ -13,6 +13,7 @@ const {
     generatePersonalWebsite,
     generateBusinessWebsite 
 } = require('./specialized-templates');
+const { generateMultiPageWebsite } = require('./page-by-page-generator');
 require('dotenv').config();
 
 const app = express();
@@ -346,19 +347,26 @@ async function searchOnlineInfo(query) {
     }
 }
 
-// Enhanced AI website generation with online research
-async function generateWithAI(prompt) {
+// Enhanced AI website generation with page-by-page option
+async function generateWithAI(prompt, usePageByPage = false) {
     if (!openai) {
         throw new Error('OpenAI not available');
     }
 
-    // Simplified approach - focus on core generation
-    console.log('🚀 Generating website for:', prompt);
-    
     // Get curated image set for this website
     const industry = detectIndustry(prompt);
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
+    
+    // Choose generation method
+    if (usePageByPage) {
+        console.log('🚀 Using page-by-page generation for:', prompt);
+        const result = await generateMultiPageWebsite(openai, prompt, imageSet);
+        console.log(`✅ Generated ${result.pageCount} pages:`, result.generatedPages);
+        return result.mainPage;
+    } else {
+        console.log('🚀 Using single-prompt generation for:', prompt);
+    }
 
     const systemPrompt = `You are an expert frontend developer. Create a stunning, professional website for: ${prompt}
 
@@ -873,7 +881,9 @@ app.post('/api/generate', async (req, res) => {
                 console.log(`📝 User prompt: "${prompt}"`);
                 console.log('🎯 About to call generateWithAI...');
                 
-                const aiHtml = await generateWithAI(prompt);
+                // Try page-by-page generation first for better results
+                const usePageByPage = prompt.length > 50 || prompt.includes('complex') || prompt.includes('multi-page');
+                const aiHtml = await generateWithAI(prompt, usePageByPage);
                 
                 console.log('✅ AI generation completed, HTML length:', aiHtml ? aiHtml.length : 0);
                 
@@ -1004,6 +1014,72 @@ app.get('/api/test', (req, res) => {
     });
 });
 
+// Page-by-page generation endpoint
+app.post('/api/generate-multipage', async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+        
+        console.log('🚀 Multi-page generation request:', prompt);
+        
+        if (!openai) {
+            console.log('⚠️ OpenAI not available, using template fallback');
+            const industry = detectIndustry(prompt);
+            const template = templates[industry] || templates.business;
+            const html = generateWebsiteHTML(template, prompt);
+            
+            return res.json({
+                success: true,
+                id: generateId(),
+                title: template.title,
+                html: html,
+                prompt: prompt,
+                timestamp: new Date().toISOString(),
+                description: template.description,
+                industry: industry,
+                source: 'template',
+                aiGenerated: false,
+                generationMethod: 'template_fallback',
+                hasOpenAI: false,
+                pageCount: 1,
+                generatedPages: ['home']
+            });
+        }
+        
+        // Generate multi-page website
+        const imageSet = getWebsiteImageSet(detectIndustry(prompt));
+        const result = await generateMultiPageWebsite(openai, prompt, imageSet);
+        
+        res.json({
+            success: true,
+            id: generateId(),
+            title: extractTitleFromHTML(result.mainPage),
+            html: result.mainPage,
+            prompt: prompt,
+            timestamp: new Date().toISOString(),
+            description: `Multi-page website with ${result.pageCount} pages`,
+            industry: detectIndustry(prompt),
+            source: 'ai_multipage',
+            aiGenerated: true,
+            generationMethod: 'page_by_page',
+            hasOpenAI: true,
+            pageCount: result.pageCount,
+            generatedPages: result.generatedPages,
+            allPages: result.allPages
+        });
+        
+    } catch (error) {
+        console.error('❌ Multi-page generation error:', error);
+        res.status(500).json({ 
+            error: 'Failed to generate multi-page website',
+            details: error.message 
+        });
+    }
+});
+
 // Debug endpoint to test AI generation directly
 app.get('/api/debug-ai/:prompt', async (req, res) => {
     try {
@@ -1095,11 +1171,21 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+function extractTitleFromHTML(html) {
+    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+    return titleMatch ? titleMatch[1] : 'Generated Website';
+}
+
+function generateId() {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+}
+
 app.listen(PORT, () => {
     console.log(`🚀 CloudIDE is running on http://localhost:${PORT}`);
     console.log(`✅ No API key required - using built-in templates`);
     console.log(`🎨 Supported industries: ${Object.keys(templates).join(', ')}`);
     console.log(`📱 Web interface available at http://localhost:${PORT}`);
+    console.log(`📄 Page-by-page generation: ✅ Available for complex websites`);
 });
 
 module.exports = app;
