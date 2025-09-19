@@ -304,47 +304,57 @@ async function generateWithAI(prompt, usePageByPage = false) {
         console.log('🚀 Using single-prompt generation for:', prompt);
     }
 
-    const systemPrompt = `You are an expert frontend developer.  
-Generate a **complete, production-ready, responsive website project** in one response.  
+    const systemPrompt = `Build a stunning ${prompt} website. Create 3 files:
 
-Project: ${prompt}
+**index.html** - Homepage with:
+- Navigation bar with logo and menu
+- Hero section with compelling headline and image
+- Features/services section with cards
+- Call-to-action section
+- Footer with contact info
 
-### Rules:
-1. Output multiple files:  
-   - index.html (homepage)  
-   - about.html (about page)  
-   - contact.html (contact page)  
-   - assets/style.css (shared styles)  
-   - assets/script.js (shared JS)  
-2. Each file must be fully complete, not truncated.  
-3. Keep each file under ~250 lines.  
-4. All pages must share the same header, footer, and style.  
-5. Use semantic HTML5, CSS3, and vanilla JS only.  
-6. Use these curated images: ${JSON.stringify(imageSet)} and placeholder images (https://picsum.photos/).  
-7. Ensure the site is fully responsive (desktop, tablet, mobile).  
-8. Output format:  
-   \`\`\`html
-   // index.html
-   [complete HTML code here]
-   \`\`\`
-   \`\`\`html
-   // about.html
-   [complete HTML code here]
-   \`\`\`
-   \`\`\`html
-   // contact.html
-   [complete HTML code here]
-   \`\`\`
-   \`\`\`css
-   // assets/style.css
-   [complete CSS code here]
-   \`\`\`
-   \`\`\`javascript
-   // assets/script.js
-   [complete JavaScript code here]
-   \`\`\`
+**style.css** - Beautiful styling with:
+- Modern gradients and colors
+- Card designs with shadows
+- Hover effects and smooth transitions
+- Mobile responsive breakpoints
+- Professional typography
 
-Generate the complete website project now:`;
+**script.js** - Interactive features:
+- Smooth scrolling navigation
+- Mobile menu toggle
+- Form validation
+- Image hover effects
+- Scroll animations
+
+Use these images: ${JSON.stringify(imageSet)}
+
+Output format:
+\`\`\`html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Name</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    [complete HTML content]
+    <script src="script.js"></script>
+</body>
+</html>
+\`\`\`
+
+\`\`\`css
+[complete CSS with gradients, cards, responsive design]
+\`\`\`
+
+\`\`\`javascript
+[complete JavaScript with interactions]
+\`\`\`
+
+Generate now:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Large context model for complete sites
@@ -427,23 +437,37 @@ function combineMultiFileResponse(response) {
         // Combine into single HTML file (use index.html as primary)
         let combinedHTML = htmlContent;
         
-        // Replace CSS link with embedded styles
+        // Replace CSS link with embedded styles (handle both assets/ and direct paths)
         if (cssContent) {
-            const cssLink = /<link rel="stylesheet" href="assets\/style\.css">/g;
+            const cssLinks = [
+                /<link rel="stylesheet" href="assets\/style\.css">/g,
+                /<link rel="stylesheet" href="style\.css">/g
+            ];
             const embeddedCSS = `<style>\n${cssContent}\n    </style>`;
-            combinedHTML = combinedHTML.replace(cssLink, embeddedCSS);
+            
+            cssLinks.forEach(pattern => {
+                combinedHTML = combinedHTML.replace(pattern, embeddedCSS);
+            });
         }
         
-        // Replace JS script with embedded JavaScript
+        // Replace JS script with embedded JavaScript (handle both assets/ and direct paths)
         if (jsContent) {
-            const jsScript = /<script src="assets\/script\.js"><\/script>/g;
+            const jsScripts = [
+                /<script src="assets\/script\.js"><\/script>/g,
+                /<script src="script\.js"><\/script>/g
+            ];
             const embeddedJS = `<script>\n${jsContent}\n    </script>`;
-            combinedHTML = combinedHTML.replace(jsScript, embeddedJS);
+            
+            jsScripts.forEach(pattern => {
+                combinedHTML = combinedHTML.replace(pattern, embeddedJS);
+            });
         }
         
         // Clean up any remaining external references
         combinedHTML = combinedHTML.replace(/href="assets\/style\.css"/g, '');
+        combinedHTML = combinedHTML.replace(/href="style\.css"/g, '');
         combinedHTML = combinedHTML.replace(/src="assets\/script\.js"/g, '');
+        combinedHTML = combinedHTML.replace(/src="script\.js"/g, '');
         
         // Add multi-page indicator to the combined HTML
         if (pageCount > 1) {
