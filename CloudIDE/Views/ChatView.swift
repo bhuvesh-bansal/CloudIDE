@@ -637,7 +637,7 @@ struct LazyWebPreview: View {
             
             // WebView (loaded lazily)
             if isWebViewLoaded {
-                OptimizedWebView(website: website) {
+                LazyLoadWebView(website: website) {
                     // Completion callback
                     withAnimation(.easeOut(duration: 0.3)) {
                         showLoadingIndicator = false
@@ -657,8 +657,8 @@ struct LazyWebPreview: View {
     }
 }
 
-// MARK: - Optimized WebView
-struct OptimizedWebView: UIViewRepresentable {
+// MARK: - Lazy Load WebView
+struct LazyLoadWebView: UIViewRepresentable {
     let website: Website
     let onLoadComplete: () -> Void
     
@@ -700,12 +700,12 @@ struct OptimizedWebView: UIViewRepresentable {
         }
     }
     
-    func makeCoordinator() -> OptimizedWebViewCoordinator {
-        OptimizedWebViewCoordinator(onLoadComplete: onLoadComplete)
+    func makeCoordinator() -> LazyLoadWebViewCoordinator {
+        LazyLoadWebViewCoordinator(onLoadComplete: onLoadComplete)
     }
 }
 
-class OptimizedWebViewCoordinator: NSObject, WKNavigationDelegate {
+class LazyLoadWebViewCoordinator: NSObject, WKNavigationDelegate {
     let onLoadComplete: () -> Void
     
     init(onLoadComplete: @escaping () -> Void) {
