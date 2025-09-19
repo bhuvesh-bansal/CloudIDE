@@ -304,55 +304,47 @@ async function generateWithAI(prompt, usePageByPage = false) {
         console.log('🚀 Using single-prompt generation for:', prompt);
     }
 
-    const systemPrompt = `Generate a complete website with separate files for: ${prompt}
+    const systemPrompt = `You are an expert frontend developer.  
+Generate a **complete, production-ready, responsive website project** in one response.  
 
-Output format:
-**index.html**
-\`\`\`html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Business Name</title>
-    <link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-    <header>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="about.html">About</a>
-        </nav>
-    </header>
-    <main>
-        <h1>Welcome to Business</h1>
-        <p>Professional description here</p>
-    </main>
-    <footer>
-        <p>&copy; 2024 Business Name</p>
-    </footer>
-    <script src="assets/script.js"></script>
-</body>
-</html>
-\`\`\`
+Project: ${prompt}
 
-**assets/style.css**
-\`\`\`css
-body { font-family: Arial, sans-serif; margin: 0; }
-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; }
-nav a { color: white; margin: 0 15px; text-decoration: none; }
-main { padding: 40px 20px; }
-footer { background: #333; color: white; padding: 20px; text-align: center; }
-@media (max-width: 768px) { nav a { display: block; margin: 10px 0; } }
-\`\`\`
+### Rules:
+1. Output multiple files:  
+   - index.html (homepage)  
+   - about.html (about page)  
+   - contact.html (contact page)  
+   - assets/style.css (shared styles)  
+   - assets/script.js (shared JS)  
+2. Each file must be fully complete, not truncated.  
+3. Keep each file under ~250 lines.  
+4. All pages must share the same header, footer, and style.  
+5. Use semantic HTML5, CSS3, and vanilla JS only.  
+6. Use these curated images: ${JSON.stringify(imageSet)} and placeholder images (https://picsum.photos/).  
+7. Ensure the site is fully responsive (desktop, tablet, mobile).  
+8. Output format:  
+   \`\`\`html
+   // index.html
+   [complete HTML code here]
+   \`\`\`
+   \`\`\`html
+   // about.html
+   [complete HTML code here]
+   \`\`\`
+   \`\`\`html
+   // contact.html
+   [complete HTML code here]
+   \`\`\`
+   \`\`\`css
+   // assets/style.css
+   [complete CSS code here]
+   \`\`\`
+   \`\`\`javascript
+   // assets/script.js
+   [complete JavaScript code here]
+   \`\`\`
 
-**assets/script.js**
-\`\`\`javascript
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Website loaded');
-    // Add smooth scrolling and interactions
-});
-\`\`\`
-
-Generate files like this for ${prompt} with actual content:`;
+Generate the complete website project now:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
@@ -406,16 +398,19 @@ Generate files like this for ${prompt} with actual content:`;
 // Function to combine multi-file AI response into single HTML
 function combineMultiFileResponse(response) {
     try {
-        // Extract HTML content
-        const htmlMatch = response.match(/```html\n([\s\S]*?)\n```/);
+        // Extract HTML content (look for index.html specifically)
+        const htmlMatch = response.match(/```html\n(?:\/\/ index\.html\n)?([\s\S]*?)\n```/) || 
+                          response.match(/```html\n([\s\S]*?)\n```/);
         let htmlContent = htmlMatch ? htmlMatch[1] : '';
         
         // Extract CSS content
-        const cssMatch = response.match(/```css\n([\s\S]*?)\n```/);
+        const cssMatch = response.match(/```css\n(?:\/\/ assets\/style\.css\n)?([\s\S]*?)\n```/) ||
+                         response.match(/```css\n([\s\S]*?)\n```/);
         const cssContent = cssMatch ? cssMatch[1] : '';
         
         // Extract JavaScript content
-        const jsMatch = response.match(/```javascript\n([\s\S]*?)\n```/);
+        const jsMatch = response.match(/```javascript\n(?:\/\/ assets\/script\.js\n)?([\s\S]*?)\n```/) ||
+                        response.match(/```javascript\n([\s\S]*?)\n```/);
         const jsContent = jsMatch ? jsMatch[1] : '';
         
         if (!htmlContent) {
