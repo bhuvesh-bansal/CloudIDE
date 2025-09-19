@@ -304,21 +304,39 @@ async function generateWithAI(prompt, usePageByPage = false) {
         console.log('🚀 Using single-prompt generation for:', prompt);
     }
 
-    const systemPrompt = `Create a complete HTML website for: ${prompt}
+    const systemPrompt = `You are an expert full-stack web developer.  
+Generate a complete, production-ready multi-page website project in a single response.  
 
-Requirements:
-- Include <style> tag with actual CSS styling (gradients, cards, responsive design)
-- Include <script> tag with actual JavaScript (smooth scrolling, interactions)
-- Use these images: ${JSON.stringify(imageSet)}
-- Sections: navigation, hero, services, contact, footer
-- Modern design with hover effects and animations
+### Requirements:
+1. The project description is: ${prompt}.  
+2. Output the full project in a structured format with multiple files. Organize it like this:
+   - index.html (homepage)  
+   - about.html (about page)  
+   - [other pages based on project, e.g., products.html, contact.html]  
+   - assets/ (CSS + JS + images placeholders)  
+     - style.css  
+     - script.js  
+3. All pages must share the same header, footer, and design system.  
+4. The site must be **responsive** (desktop, tablet, mobile).  
+5. Use modern, clean **HTML5 + CSS3 + JavaScript** only (no build tools required).  
+6. Use semantic HTML and accessibility best practices.  
+7. Use these curated images: ${JSON.stringify(imageSet)} and placeholder images where needed.  
+8. Keep each file under ~400 lines so nothing is truncated.  
+9. At the very end of your response, output a short "Usage" note:
+   - how to save files into a folder  
+   - how to open \`index.html\` locally in a browser  
 
-Generate the complete HTML file now:`;
+### Important:
+- Do not skip any files.  
+- Wrap each file's contents in a clear code block labeled with its filename.  
+- Make sure all internal links work (e.g., \`<a href="about.html">About</a>\`).  
+
+Now, generate the full website project for: ${prompt}.`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
-            { role: "system", content: "You are a web developer. Generate COMPLETE HTML code with ACTUAL CSS and JavaScript. NO placeholders, NO comments like '/* Add CSS here */'. Write REAL working code with styles and scripts. NEVER use placeholder comments." },
+            { role: "system", content: "You are an expert web developer. Generate a complete multi-file website project. Output multiple files (index.html, about.html, style.css, script.js) with proper code blocks and filenames. NO placeholders or incomplete code. Generate REAL working websites with actual CSS and JavaScript." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000, // Optimized for complete websites
