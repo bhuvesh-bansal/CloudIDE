@@ -351,46 +351,41 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `You are a professional web developer. Create a stunning, modern website.
+    const systemPrompt = `Generate HTML for: ${prompt}
 
-Build a ${prompt} website with these exact requirements:
+Example format:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Business Name</title>
+    <style>
+        body { font-family: Arial; margin: 0; }
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 20px; text-align: center; }
+        .services { padding: 60px 20px; }
+        /* Add more CSS */
+    </style>
+</head>
+<body>
+    <nav><a href="#home">Home</a> <a href="#services">Services</a></nav>
+    <div class="hero"><h1>Welcome</h1><p>Description</p></div>
+    <div class="services"><h2>Our Services</h2></div>
+    <script>
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({behavior: 'smooth'});
+            });
+        });
+    </script>
+</body>
+</html>
 
-MANDATORY CSS (minimum 150 lines):
-- Modern gradients and animations
-- Responsive grid layouts
-- Hover effects and transitions
-- Mobile-first design with breakpoints
-- Beautiful typography and spacing
-- Card designs and shadows
-
-MANDATORY JAVASCRIPT (minimum 80 lines):
-- Smooth scrolling navigation
-- Interactive image gallery
-- Form validation and submission
-- Mobile menu toggle
-- Scroll animations
-- Button interactions
-
-CONTENT REQUIREMENTS:
-- Real business names and descriptions
-- Professional service descriptions
-- Actual contact information
-- Multiple sections: nav, hero, about, services, gallery, contact, footer
-- Use these images: ${JSON.stringify(imageSet)}
-
-DESIGN STYLE:
-- Modern, professional appearance
-- Beautiful color schemes
-- Engaging hero sections
-- Interactive elements
-- Professional typography
-
-Generate ONLY the complete HTML file with embedded CSS and JavaScript. Make it visually stunning and fully functional:`;
+Generate similar complete HTML for ${prompt} now:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
-            { role: "system", content: "You are a professional web developer who always generates complete HTML websites. Never refuse requests or provide incomplete code." },
+            { role: "system", content: "You are a web developer. You ALWAYS generate complete HTML code. You NEVER refuse requests. You NEVER provide explanations instead of code. Generate HTML immediately when asked." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000, // Optimized for complete websites
@@ -402,7 +397,8 @@ Generate ONLY the complete HTML file with embedded CSS and JavaScript. Make it v
     
     // Check if AI refused to generate HTML
     if (!response.includes('<!DOCTYPE html>') && !response.includes('<html')) {
-        console.log('⚠️ AI refused to generate HTML, response:', response);
+        console.log('⚠️ AI refused to generate HTML, response:', response.substring(0, 500));
+        console.log('🔄 Switching to enhanced template fallback...');
         throw new Error('AI generation failed - using template fallback');
     }
     
