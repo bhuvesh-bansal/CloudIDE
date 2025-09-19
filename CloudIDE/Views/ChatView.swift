@@ -61,6 +61,8 @@ struct ChatView: View {
         }
         .sheet(isPresented: $showPreview) {
             OptimizedPreviewView(website: currentWebsite)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
     
@@ -245,7 +247,11 @@ struct ChatView: View {
                 VStack(spacing: 12) {
                     AnimatedButton(style: .primary, action: {
                         HapticFeedback.impact(.medium)
-                        showPreview = true
+                        
+                        // Immediate UI feedback
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showPreview = true
+                        }
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "eye.fill")
@@ -530,8 +536,8 @@ struct OptimizedPreviewView: View {
                             .padding(.vertical, 16)
                             .background(.ultraThinMaterial)
                             
-                            // Lightweight WebView
-                            WebPreviewView(website: website)
+                            // Optimized WebView with lazy loading
+                            LazyWebPreview(website: website)
                         }
                     }
                 } else {
@@ -602,6 +608,153 @@ struct OptimizedPreviewView: View {
     private func copyToClipboard(_ html: String) {
         UIPasteboard.general.string = html
         // Could add a toast notification here
+    }
+}
+
+// MARK: - Lazy Web Preview (Performance Optimized)
+struct LazyWebPreview: View {
+    let website: Website
+    @State private var isWebViewLoaded = false
+    @State private var showLoadingIndicator = true
+    
+    var body: some View {
+        ZStack {
+            // Background placeholder while loading
+            if showLoadingIndicator {
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .cloudIDEBlue))
+                        .scaleEffect(1.2)
+                    
+                    Text("Loading Preview...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemGray6))
+                .transition(.opacity)
+            }
+            
+            // WebView (loaded lazily)
+            if isWebViewLoaded {
+                OptimizedWebView(website: website) {
+                    // Completion callback
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        showLoadingIndicator = false
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .onAppear {
+            // Delay WebView creation to prevent initial lag
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeIn(duration: 0.2)) {
+                    isWebViewLoaded = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Optimized WebView
+struct OptimizedWebView: UIViewRepresentable {
+    let website: Website
+    let onLoadComplete: () -> Void
+    
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        
+        // Performance optimizations
+        config.suppressesIncrementalRendering = false
+        config.allowsInlineMediaPlayback = true
+        config.allowsAirPlayForMediaPlayback = false
+        config.allowsPictureInPictureMediaPlayback = false
+        
+        // Disable resource-intensive features
+        config.preferences.javaScriptEnabled = true
+        config.preferences.javaScriptCanOpenWindowsAutomatically = false
+        
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = context.coordinator
+        
+        // Optimize for performance
+        webView.isOpaque = true
+        webView.backgroundColor = UIColor.systemBackground
+        webView.scrollView.backgroundColor = UIColor.systemBackground
+        webView.scrollView.bounces = true
+        webView.scrollView.showsVerticalScrollIndicator = true
+        webView.scrollView.keyboardDismissMode = .onDrag
+        
+        // Disable features that can cause lag
+        webView.allowsBackForwardNavigationGestures = false
+        webView.allowsLinkPreview = false
+        
+        return webView
+    }
+    
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        // Only load if not already loaded
+        if webView.url == nil {
+            webView.loadHTMLString(website.html, baseURL: nil)
+        }
+    }
+    
+    func makeCoordinator() -> OptimizedWebViewCoordinator {
+        OptimizedWebViewCoordinator(onLoadComplete: onLoadComplete)
+    }
+}
+
+class OptimizedWebViewCoordinator: NSObject, WKNavigationDelegate {
+    let onLoadComplete: () -> Void
+    
+    init(onLoadComplete: @escaping () -> Void) {
+        self.onLoadComplete = onLoadComplete
+    }
+    
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        // Navigation started
+    }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // Inject minimal performance JavaScript
+        let performanceJS = """
+            // Optimize images for mobile
+            document.querySelectorAll('img').forEach(img => {
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                img.loading = 'lazy';
+            });
+            
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            
+            // Disable text selection for better mobile experience
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.webkitTouchCallout = 'none';
+        """
+        
+        webView.evaluateJavaScript(performanceJS) { _, _ in
+            // Call completion callback
+            DispatchQueue.main.async {
+                self.onLoadComplete()
+            }
+        }
+    }
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        print("WebView failed to load: \(error.localizedDescription)")
+        DispatchQueue.main.async {
+            self.onLoadComplete()
+        }
     }
 }
 
