@@ -4,6 +4,15 @@ const path = require('path');
 const OpenAI = require('openai');
 const axios = require('axios');
 const { getWebsiteImageSet, generateImageHTML, getRandomImage, getRandomImages, imageCategories } = require('./image-manager');
+const { 
+    generateRestaurantWebsite,
+    generatePortfolioWebsite, 
+    generateHealthcareWebsite,
+    generateTechWebsite,
+    generateEcommerceWebsite,
+    generatePersonalWebsite,
+    generateBusinessWebsite 
+} = require('./specialized-templates');
 require('dotenv').config();
 
 const app = express();
@@ -429,6 +438,40 @@ Generate complete HTML starting with <!DOCTYPE html>`;
 
 function generateWebsiteHTML(template, prompt) {
     const { title, description, tagline, features, colors } = template;
+    const industry = detectIndustry(prompt);
+    
+    // Generate completely different designs based on industry
+    switch(industry) {
+        case 'cafe':
+        case 'restaurant':
+        case 'bakery':
+            return generateRestaurantWebsite(template, prompt);
+        case 'portfolio':
+        case 'photography':
+        case 'design':
+            return generatePortfolioWebsite(template, prompt);
+        case 'healthcare':
+        case 'dental':
+        case 'fitness':
+            return generateHealthcareWebsite(template, prompt);
+        case 'technology':
+        case 'startup':
+        case 'saas':
+            return generateTechWebsite(template, prompt);
+        case 'ecommerce':
+        case 'fashion':
+            return generateEcommerceWebsite(template, prompt);
+        case 'helloworld':
+        case 'personal':
+            return generatePersonalWebsite(template, prompt);
+        default:
+            return generateBusinessWebsite(template, prompt);
+    }
+}
+
+// Restaurant/Cafe Website - Menu-focused design
+function generateRestaurantWebsite(template, prompt) {
+    const { title, description, features, colors } = template;
     
     return `<!DOCTYPE html>
 <html lang="en">
