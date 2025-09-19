@@ -351,25 +351,48 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `You are an expert full-stack web developer.  
-Generate a complete, production-ready, responsive website based on the following description:  
+    const systemPrompt = `Generate HTML code for: ${prompt}
 
-${prompt}
+MUST include:
+- <style> tag with CSS
+- <script> tag with JavaScript
+- Modern design with gradients
+- Responsive layout
 
-### Requirements:
-1. The website should use **HTML, CSS, and JavaScript** in a single file.  
-2. It must be **fully responsive** (desktop, tablet, mobile).  
-3. Include **dummy data, images, and text** where real data is missing.  
-4. Use a **modern clean UI/UX design** with proper sections, navigation, and footer.  
-5. The website should be **ready to deploy** as-is.
-6. Use these curated images: ${JSON.stringify(imageSet)}
+Example structure:
+<!DOCTYPE html>
+<html>
+<head>
+<title>Business</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Arial', sans-serif; }
+.hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 20px; text-align: center; }
+.services { padding: 80px 20px; background: #f8f9fa; }
+@media (max-width: 768px) { .hero { padding: 60px 20px; } }
+</style>
+</head>
+<body>
+<nav><a href="#home">Home</a></nav>
+<div class="hero"><h1>Title</h1></div>
+<div class="services"><h2>Services</h2></div>
+<script>
+document.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(a.getAttribute('href')).scrollIntoView({behavior: 'smooth'});
+    });
+});
+</script>
+</body>
+</html>
 
-Now generate the complete website code starting with <!DOCTYPE html>`;
+Generate complete HTML like this for ${prompt}:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
-            { role: "system", content: "You are a web developer. You ALWAYS generate complete HTML code. You NEVER refuse requests. You NEVER provide explanations instead of code. Generate HTML immediately when asked." },
+            { role: "system", content: "You are a web developer. You MUST generate complete HTML with embedded CSS and JavaScript. Always include <style> and <script> tags with actual code. Never refuse. Never explain. Only generate HTML code." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000, // Optimized for complete websites
@@ -379,11 +402,30 @@ Now generate the complete website code starting with <!DOCTYPE html>`;
     const response = completion.choices[0].message.content;
     console.log('🤖 AI Response preview:', response.substring(0, 200) + '...');
     
+    // Enhanced debugging - check what AI actually generated
+    const hasHTML = response.includes('<!DOCTYPE html>') || response.includes('<html');
+    const hasCSS = response.includes('<style>') || response.includes('body {') || response.includes('.hero {');
+    const hasJS = response.includes('<script>') || response.includes('addEventListener') || response.includes('function');
+    
+    console.log('📊 AI Generation Analysis:');
+    console.log('   ✅ HTML:', hasHTML);
+    console.log('   🎨 CSS:', hasCSS);
+    console.log('   ⚡ JavaScript:', hasJS);
+    console.log('   📏 Response length:', response.length);
+    
     // Check if AI refused to generate HTML
-    if (!response.includes('<!DOCTYPE html>') && !response.includes('<html')) {
-        console.log('⚠️ AI refused to generate HTML, response:', response.substring(0, 500));
+    if (!hasHTML) {
+        console.log('⚠️ AI refused to generate HTML, full response:', response);
         console.log('🔄 Switching to enhanced template fallback...');
         throw new Error('AI generation failed - using template fallback');
+    }
+    
+    // Warn if missing CSS or JS but still return the response
+    if (!hasCSS) {
+        console.log('⚠️ Warning: AI response missing CSS styling');
+    }
+    if (!hasJS) {
+        console.log('⚠️ Warning: AI response missing JavaScript functionality');
     }
     
     return response;
@@ -921,6 +963,33 @@ app.get('/api/test', (req, res) => {
         server: 'Render.com',
         features: ['AI Generation', 'Template Fallback', 'Curated Images']
     });
+});
+
+// Debug endpoint to test AI generation directly
+app.get('/api/debug-ai/:prompt', async (req, res) => {
+    try {
+        const prompt = req.params.prompt || 'coffee shop';
+        console.log('🧪 Debug AI generation for:', prompt);
+        
+        const aiResponse = await generateWithAI(prompt);
+        
+        res.json({
+            success: true,
+            prompt: prompt,
+            response: aiResponse,
+            hasHTML: aiResponse.includes('<!DOCTYPE html>') || aiResponse.includes('<html'),
+            hasCSS: aiResponse.includes('<style>') || aiResponse.includes('body {'),
+            hasJS: aiResponse.includes('<script>') || aiResponse.includes('addEventListener'),
+            length: aiResponse.length
+        });
+    } catch (error) {
+        console.log('🚨 Debug AI generation failed:', error.message);
+        res.json({
+            success: false,
+            error: error.message,
+            prompt: req.params.prompt
+        });
+    }
 });
 
 // Random image endpoint
