@@ -33,9 +33,17 @@ struct ChatView: View {
             }
         }
         .onTapGesture {
+            // Clear focus and hide keyboard
             isTextFieldFocused = false
+            
+            // Hide quick actions
             withAnimation(.easeInOut(duration: 0.3)) {
                 showQuickActions = false
+            }
+            
+            // Clear any weird text field states
+            if viewModel.messageText.isEmpty {
+                viewModel.messageText = ""
             }
         }
         .onAppear {
@@ -342,27 +350,48 @@ struct ChatView: View {
                 .disabled(viewModel.isLoading)
                 
                 // Enhanced text field
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(.white.opacity(0.9))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 22)
-                                .stroke(.white.opacity(0.3), lineWidth: 1)
-                        )
-                        .frame(height: 44)
-                    
-                    TextField("Describe your dream website...", text: $viewModel.messageText, axis: .vertical)
-                        .focused($isTextFieldFocused)
-                        .textFieldStyle(.plain)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .font(.body)
-                        .lineLimit(1...5)
-                        .onSubmit {
+                HStack {
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(.white.opacity(0.9))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 22)
+                                    .stroke(.white.opacity(0.3), lineWidth: 1)
+                            )
+                            .frame(height: 44)
+                        
+            HStack {
+                            TextField("Describe your dream website...", text: $viewModel.messageText, axis: .vertical)
+                                .focused($isTextFieldFocused)
+                                .textFieldStyle(.plain)
+                                .font(.body)
+                                .lineLimit(1...5)
+                                .autocorrectionDisabled(true)
+                                .textInputAutocapitalization(.sentences)
+                                .keyboardType(.default)
+                                .submitLabel(.send)
+                                .onSubmit {
+                                    if !viewModel.messageText.isEmpty {
+                                        sendMessage()
+                                    }
+                                }
+                            
+                            // Clear button (when text exists)
                             if !viewModel.messageText.isEmpty {
-                                sendMessage()
+                                Button(action: {
+                                    viewModel.messageText = ""
+                                    isTextFieldFocused = false
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray.opacity(0.6))
+                                        .font(.system(size: 16))
+                                }
+                                .transition(.scale.combined(with: .opacity))
                             }
                         }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                    }
                 }
                 
                 // Enhanced send button
