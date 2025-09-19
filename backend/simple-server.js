@@ -372,7 +372,69 @@ Now, generate the full website project for: ${prompt}.`;
         console.log('⚠️ Warning: AI response missing JavaScript functionality');
     }
     
+    // Check if AI generated multi-file structure
+    if (response.includes('### index.html') || response.includes('```html') && response.includes('```css')) {
+        console.log('🔗 AI generated multi-file structure, combining into single HTML...');
+        const combinedHTML = combineMultiFileResponse(response);
+        return combinedHTML;
+    }
+    
     return response;
+}
+
+// Function to combine multi-file AI response into single HTML
+function combineMultiFileResponse(response) {
+    try {
+        // Extract HTML content
+        const htmlMatch = response.match(/```html\n([\s\S]*?)\n```/);
+        let htmlContent = htmlMatch ? htmlMatch[1] : '';
+        
+        // Extract CSS content
+        const cssMatch = response.match(/```css\n([\s\S]*?)\n```/);
+        const cssContent = cssMatch ? cssMatch[1] : '';
+        
+        // Extract JavaScript content
+        const jsMatch = response.match(/```javascript\n([\s\S]*?)\n```/);
+        const jsContent = jsMatch ? jsMatch[1] : '';
+        
+        if (!htmlContent) {
+            console.log('⚠️ Could not extract HTML from multi-file response');
+            return response; // Return original if parsing fails
+        }
+        
+        // Combine into single HTML file
+        let combinedHTML = htmlContent;
+        
+        // Replace CSS link with embedded styles
+        if (cssContent) {
+            const cssLink = /<link rel="stylesheet" href="assets\/style\.css">/;
+            const embeddedCSS = `<style>\n${cssContent}\n    </style>`;
+            combinedHTML = combinedHTML.replace(cssLink, embeddedCSS);
+        }
+        
+        // Replace JS script with embedded JavaScript
+        if (jsContent) {
+            const jsScript = /<script src="assets\/script\.js"><\/script>/;
+            const embeddedJS = `<script>\n${jsContent}\n    </script>`;
+            combinedHTML = combinedHTML.replace(jsScript, embeddedJS);
+        }
+        
+        // Clean up any remaining external references
+        combinedHTML = combinedHTML.replace(/href="assets\/style\.css"/g, '');
+        combinedHTML = combinedHTML.replace(/src="assets\/script\.js"/g, '');
+        
+        console.log('✅ Successfully combined multi-file response into single HTML');
+        console.log('   HTML length:', htmlContent.length);
+        console.log('   CSS length:', cssContent.length);
+        console.log('   JS length:', jsContent.length);
+        console.log('   Combined length:', combinedHTML.length);
+        
+        return combinedHTML;
+        
+    } catch (error) {
+        console.log('❌ Error combining multi-file response:', error.message);
+        return response; // Return original if combination fails
+    }
 }
 
 // API Routes
