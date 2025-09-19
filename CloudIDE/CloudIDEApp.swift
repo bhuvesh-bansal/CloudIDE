@@ -11,7 +11,7 @@ import SwiftUI
 struct CloudIDEApp: App {
     var body: some Scene {
         WindowGroup {
-            SimpleContentView()
+            ContentView()
                 .preferredColorScheme(.light) // Optimize for CloudIDE branding
         }
     }

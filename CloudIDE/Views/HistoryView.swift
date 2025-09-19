@@ -85,8 +85,7 @@ struct HistoryView: View {
     }
     
     var body: some View {
-        NavigationView {
-            ResponsiveContainer { geometry in
+        ResponsiveContainer { geometry in
                 VStack(spacing: 0) {
                     // Search and Filter Bar
                     searchAndFilterSection
@@ -108,37 +107,37 @@ struct HistoryView: View {
                         websitesList(geometry: geometry)
                     }
                 }
-            }
-            .background(Color.dynamicBackground)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        sortMenuItems
-                        
+        }
+        .background(Color.dynamicBackground)
+        .navigationTitle("Website History")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    sortMenuItems
+                    
+                    Divider()
+                    
+                    Button(action: {
+                        withAnimation(.cloudIDEEase) {
+                            showFilters.toggle()
+                        }
+                    }) {
+                        Label(showFilters ? "Hide Filters" : "Show Filters", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+                    
+                    if !appState.websiteHistory.isEmpty {
                         Divider()
                         
-                        Button(action: {
+                        Button("Clear All", role: .destructive) {
                             withAnimation(.cloudIDEEase) {
-                                showFilters.toggle()
-                            }
-                        }) {
-                            Label(showFilters ? "Hide Filters" : "Show Filters", systemImage: "line.3.horizontal.decrease.circle")
-                        }
-                        
-                        if !appState.websiteHistory.isEmpty {
-                            Divider()
-                            
-                            Button("Clear All", role: .destructive) {
-                                withAnimation(.cloudIDEEase) {
-                                    appState.clearHistory()
-                                }
+                                appState.clearHistory()
                             }
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .foregroundColor(.cloudIDEBlue)
                     }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundColor(.cloudIDEBlue)
                 }
             }
         }

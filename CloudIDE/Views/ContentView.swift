@@ -178,8 +178,6 @@ struct ContentView: View {
                 .tag(MainTab.settings)
         }
         .accentColor(.blue)
-        .navigationTitle(selectedTab.rawValue)
-        .navigationBarTitleDisplayMode(.inline)
     }
     
     private func setupAppearance() {

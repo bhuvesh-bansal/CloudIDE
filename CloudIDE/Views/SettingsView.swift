@@ -6,8 +6,7 @@ struct SettingsView: View {
     @State private var showClearDataAlert = false
     
     var body: some View {
-        NavigationView {
-            ResponsiveContainer { geometry in
+        ResponsiveContainer { geometry in
                 ScrollView {
                     LazyVStack(spacing: 24) {
                         // Header Section
@@ -28,11 +27,10 @@ struct SettingsView: View {
                     .padding(.horizontal, ResponsiveLayout.padding(for: geometry))
                     .padding(.vertical, 24)
                 }
-            }
-            .background(Color.dynamicBackground)
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
         }
+        .background(Color.dynamicBackground)
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showAbout) {
             AboutView()
         }
