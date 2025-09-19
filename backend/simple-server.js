@@ -351,26 +351,44 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `You are an expert frontend developer. Produce a single-file, production-ready website as a SHORT, COMPLETE package.
+    const systemPrompt = `You are an expert frontend developer. Create a stunning, professional website for: ${prompt}
 
-Requirements:
-1. Output exactly one file named index.html and nothing else. Put HTML, CSS (in <style>) and JavaScript (in <script>) all in that file.
-2. The page must be fully responsive (desktop / tablet / mobile) and visually modern.
-3. Keep the whole file concise (approx 200–600 lines). Use minimal but clear code.
-4. Include: header with nav, hero, 2–3 content sections, example data (3–6 items if relevant), contact/footer, and a small interactive feature (search, filter, or modal).
-5. Use semantic HTML, accessible attributes (alt, aria-*), and comments for sections.
-6. For images use these curated URLs: ${JSON.stringify(imageSet)} and include one example of lazy loading.
-7. No backend — any form should use \`mailto:\` or show a "Thanks — form submitted (demo)" message.
-8. At the top of the file include a short comment listing any commands the user must run (if any). If there are no external dependencies, say "No build step required."
-9. Keep code clean and avoid external libraries. If you must reference a CDN, keep it to one small script and justify it in a 1-line comment.
-10. At the end, output a 3-line plain-text usage note (how to view file locally).
+CRITICAL REQUIREMENTS:
+1. **Beautiful Modern Design**: Use gradients, shadows, hover effects, smooth animations
+2. **Perfect Image Handling**: 
+   - Hero images: object-fit: cover, height: 400-600px
+   - Gallery images: aspect-ratio: 16/9, object-fit: cover
+   - Team photos: border-radius: 50%, width/height: 150px
+   - All images: max-width: 100%, height: auto for responsive
+3. **Professional CSS** (minimum 200 lines):
+   - Modern color schemes with gradients
+   - Card designs with shadows and hover effects
+   - Smooth transitions and animations
+   - Typography hierarchy (h1, h2, p different sizes)
+   - Proper spacing and padding
+4. **Interactive JavaScript** (minimum 100 lines):
+   - Smooth scrolling navigation
+   - Image gallery with lightbox
+   - Mobile menu toggle
+   - Form validation
+   - Scroll animations
+5. **Complete Sections**: Header/nav, hero, about, services/products, gallery, contact, footer
+6. **Use these images**: ${JSON.stringify(imageSet)}
 
-Now generate index.html for: ${prompt}.`;
+DESIGN STYLE:
+- Modern gradient backgrounds
+- Card-based layouts with shadows
+- Hover effects on buttons and cards
+- Professional typography
+- Clean spacing and alignment
+- Mobile-first responsive design
+
+Generate complete HTML starting with <!DOCTYPE html>`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
-            { role: "system", content: "You are a web developer. You MUST generate complete HTML with embedded CSS and JavaScript. Always include <style> and <script> tags with actual code. Never refuse. Never explain. Only generate HTML code." },
+            { role: "system", content: "You are an expert frontend developer. Generate ONLY complete HTML code with beautiful CSS and interactive JavaScript. Include proper image sizing (object-fit: cover, aspect ratios). Create visually stunning websites with gradients, shadows, and animations. Never refuse. Never explain." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000, // Optimized for complete websites
