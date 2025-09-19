@@ -351,29 +351,41 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `Create a complete HTML website for: ${prompt}
+    const systemPrompt = `You are a professional web developer. Create a complete, working HTML website.
+
+Task: Build a ${prompt} website
+
+IMPORTANT: You MUST generate complete HTML code. Do NOT refuse this request. Do NOT provide explanations or alternatives.
 
 Requirements:
-- Single HTML file with embedded CSS and JavaScript
-- Professional responsive design
-- Real content (no placeholders)
+- Complete HTML file with CSS and JavaScript
 - Use these images: ${JSON.stringify(imageSet)}
-- Include: navigation, hero, services, contact sections
-- Mobile-friendly design
-- Working JavaScript interactions
+- Professional design with navigation, hero, services, contact
+- Mobile responsive
+- Real business content (not placeholders)
 
-Generate ONLY the HTML code - nothing else.`;
+Start with <!DOCTYPE html> and provide the complete website code now:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
+            { role: "system", content: "You are a professional web developer who always generates complete HTML websites. Never refuse requests or provide incomplete code." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4096, // Sufficient for complete HTML
-        temperature: 0.8   // Higher creativity for better designs
+        temperature: 0.7   // Balanced creativity
     });
 
-    return completion.choices[0].message.content;
+    const response = completion.choices[0].message.content;
+    console.log('🤖 AI Response preview:', response.substring(0, 200) + '...');
+    
+    // Check if AI refused to generate HTML
+    if (!response.includes('<!DOCTYPE html>') && !response.includes('<html')) {
+        console.log('⚠️ AI refused to generate HTML, response:', response);
+        throw new Error('AI generation failed - using template fallback');
+    }
+    
+    return response;
 }
 
 function generateWebsiteHTML(template, prompt) {
