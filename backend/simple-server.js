@@ -351,20 +351,41 @@ async function generateWithAI(prompt) {
     const imageSet = getWebsiteImageSet(industry);
     console.log('🖼️ Image set prepared for industry:', industry);
 
-    const systemPrompt = `You are a professional web developer. Create a complete, working HTML website.
+    const systemPrompt = `You are a professional web developer. Create a stunning, modern website.
 
-Task: Build a ${prompt} website
+Build a ${prompt} website with these exact requirements:
 
-IMPORTANT: You MUST generate complete HTML code. Do NOT refuse this request. Do NOT provide explanations or alternatives.
+MANDATORY CSS (minimum 150 lines):
+- Modern gradients and animations
+- Responsive grid layouts
+- Hover effects and transitions
+- Mobile-first design with breakpoints
+- Beautiful typography and spacing
+- Card designs and shadows
 
-Requirements:
-- Complete HTML file with CSS and JavaScript
+MANDATORY JAVASCRIPT (minimum 80 lines):
+- Smooth scrolling navigation
+- Interactive image gallery
+- Form validation and submission
+- Mobile menu toggle
+- Scroll animations
+- Button interactions
+
+CONTENT REQUIREMENTS:
+- Real business names and descriptions
+- Professional service descriptions
+- Actual contact information
+- Multiple sections: nav, hero, about, services, gallery, contact, footer
 - Use these images: ${JSON.stringify(imageSet)}
-- Professional design with navigation, hero, services, contact
-- Mobile responsive
-- Real business content (not placeholders)
 
-Start with <!DOCTYPE html> and provide the complete website code now:`;
+DESIGN STYLE:
+- Modern, professional appearance
+- Beautiful color schemes
+- Engaging hero sections
+- Interactive elements
+- Professional typography
+
+Generate ONLY the complete HTML file with embedded CSS and JavaScript. Make it visually stunning and fully functional:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
@@ -372,7 +393,7 @@ Start with <!DOCTYPE html> and provide the complete website code now:`;
             { role: "system", content: "You are a professional web developer who always generates complete HTML websites. Never refuse requests or provide incomplete code." },
             { role: "user", content: systemPrompt }
         ],
-        max_tokens: 4096, // Sufficient for complete HTML
+        max_tokens: 4000, // Optimized for complete websites
         temperature: 0.7   // Balanced creativity
     });
 
