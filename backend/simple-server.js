@@ -304,44 +304,21 @@ async function generateWithAI(prompt, usePageByPage = false) {
         console.log('🚀 Using single-prompt generation for:', prompt);
     }
 
-    const systemPrompt = `You are an expert frontend developer. Create a stunning, professional website for: ${prompt}
+    const systemPrompt = `Create a complete HTML website for: ${prompt}
 
-CRITICAL REQUIREMENTS:
-1. **Beautiful Modern Design**: Use gradients, shadows, hover effects, smooth animations
-2. **Perfect Image Handling**: 
-   - Hero images: object-fit: cover, height: 400-600px
-   - Gallery images: aspect-ratio: 16/9, object-fit: cover
-   - Team photos: border-radius: 50%, width/height: 150px
-   - All images: max-width: 100%, height: auto for responsive
-3. **Professional CSS** (minimum 200 lines):
-   - Modern color schemes with gradients
-   - Card designs with shadows and hover effects
-   - Smooth transitions and animations
-   - Typography hierarchy (h1, h2, p different sizes)
-   - Proper spacing and padding
-4. **Interactive JavaScript** (minimum 100 lines):
-   - Smooth scrolling navigation
-   - Image gallery with lightbox
-   - Mobile menu toggle
-   - Form validation
-   - Scroll animations
-5. **Complete Sections**: Header/nav, hero, about, services/products, gallery, contact, footer
-6. **Use these images**: ${JSON.stringify(imageSet)}
+Requirements:
+- Include <style> tag with actual CSS styling (gradients, cards, responsive design)
+- Include <script> tag with actual JavaScript (smooth scrolling, interactions)
+- Use these images: ${JSON.stringify(imageSet)}
+- Sections: navigation, hero, services, contact, footer
+- Modern design with hover effects and animations
 
-DESIGN STYLE:
-- Modern gradient backgrounds
-- Card-based layouts with shadows
-- Hover effects on buttons and cards
-- Professional typography
-- Clean spacing and alignment
-- Mobile-first responsive design
-
-Generate complete HTML starting with <!DOCTYPE html>`;
+Generate the complete HTML file now:`;
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo", // Reliable and cost-effective
         messages: [
-            { role: "system", content: "You are an expert frontend developer. Generate ONLY complete HTML code with beautiful CSS and interactive JavaScript. Include proper image sizing (object-fit: cover, aspect ratios). Create visually stunning websites with gradients, shadows, and animations. Never refuse. Never explain." },
+            { role: "system", content: "You are a web developer. Generate COMPLETE HTML code with ACTUAL CSS and JavaScript. NO placeholders, NO comments like '/* Add CSS here */'. Write REAL working code with styles and scripts. NEVER use placeholder comments." },
             { role: "user", content: systemPrompt }
         ],
         max_tokens: 4000, // Optimized for complete websites

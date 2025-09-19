@@ -89,16 +89,27 @@ function generateRestaurantWebsite(template, prompt) {
     </header>
 
     <section id="menu" class="menu-grid">
-        ${features.map((feature, i) => `
+        ${features.map((feature, i) => {
+            const descriptions = {
+                'Specialty Coffee': 'Expertly roasted coffee beans from around the world, crafted to perfection.',
+                'Fresh Pastries': 'Daily baked croissants, muffins, and artisanal pastries made with premium ingredients.',
+                'WiFi Workspace': 'Comfortable seating area with high-speed WiFi, perfect for remote work and study.',
+                'Live Music': 'Enjoy live acoustic performances every Friday and Saturday evening.',
+                'Coffee Beans': 'Take home our signature coffee blends, freshly roasted and ready to brew.',
+                'Barista Training': 'Learn the art of coffee making with our professional barista workshops.'
+            };
+            
+            return `
         <div class="menu-item">
-            <img src="https://images.unsplash.com/photo-151${7+i}248135467-4c7edcad34c4?w=400&h=200&fit=crop" alt="${feature}">
+            <img src="https://images.unsplash.com/photo-${1517 + i}248135467-4c7edcad34c4?w=400&h=200&fit=crop" alt="${feature}">
             <div class="menu-content">
                 <h3>${feature}</h3>
-                <p>Delicious ${feature.toLowerCase()} made with fresh, local ingredients.</p>
+                <p>${descriptions[feature] || `Professional ${feature.toLowerCase()} services with exceptional quality.`}</p>
                 <span class="price">$${(Math.random() * 20 + 5).toFixed(2)}</span>
             </div>
         </div>
-        `).join('')}
+        `;
+        }).join('')}
     </section>
 
     <section class="location">
