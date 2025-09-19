@@ -58,27 +58,37 @@ struct ChatView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .sheet(isPresented: $showPreview) {
+        .fullScreenCover(isPresented: $showPreview) {
             if let website = currentWebsite {
                 NavigationView {
-                        WebPreviewView(website: website)
-                        .navigationTitle("Website Preview")
+                    WebPreviewView(website: website)
+                        .navigationTitle(website.displayTitle)
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
-                            ToolbarItem(placement: .navigationBarTrailing) {
+                            ToolbarItem(placement: .navigationBarLeading) {
                                 Button("Done") {
                                     showPreview = false
+                                }
+                                .fontWeight(.medium)
+                            }
+                            
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button(action: {
+                                    shareWebsite(website)
+                                }) {
+                                    Image(systemName: "square.and.arrow.up")
                                 }
                             }
                         }
                 }
+                .interactiveDismissDisabled(false)
             }
         }
     }
     
     // MARK: - Header View
     private var headerView: some View {
-        HStack {
+            HStack {
             // CloudIDE branding with animation
             HStack(spacing: 8) {
                 Image(systemName: "cloud.fill")
@@ -89,7 +99,7 @@ struct ChatView: View {
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("CloudIDE")
-                        .font(.headline)
+                    .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
@@ -102,41 +112,8 @@ struct ChatView: View {
             
             Spacer()
             
-            HStack(spacing: 12) {
-                // Preview Button (only show when website exists)
-                if currentWebsite != nil {
-                    Button(action: {
-                        HapticFeedback.impact(.medium)
-                        showPreview = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "eye.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("Preview")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(.white.opacity(0.2))
-                                .overlay(
-                                    Capsule()
-                                        .stroke(.white.opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                    }
-                    .transition(.asymmetric(
-                        insertion: .scale.combined(with: .opacity),
-                        removal: .scale.combined(with: .opacity)
-                    ))
-                }
-                
-                // Status indicator
-                AnimatedStatusIndicator(status: viewModel.connectionStatus)
-            }
+            // Status indicator only
+            AnimatedStatusIndicator(status: viewModel.connectionStatus)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -145,7 +122,6 @@ struct ChatView: View {
                 .fill(.ultraThinMaterial)
                 .background(.white.opacity(0.1))
         )
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: currentWebsite != nil)
     }
     
     // MARK: - Messages Scroll View
@@ -256,7 +232,7 @@ struct ChatView: View {
         EnhancedCard {
             VStack(spacing: 16) {
                 // Success Header
-                HStack {
+                        HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.successGreen)
                         .font(.title2)
@@ -269,10 +245,10 @@ struct ChatView: View {
                         
                         Text("Your \(website.displayTitle) is ready")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                                .foregroundColor(.secondary)
                     }
                     
-                    Spacer()
+                            Spacer()
                     
                     TagView(
                         text: website.isAIGenerated ? "AI" : "Template",
@@ -281,24 +257,45 @@ struct ChatView: View {
                     )
                 }
                 
+                // Preview Message
+                Text("🎉 Tap the preview button below to explore your new website!")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                
                 // Action Buttons
-                HStack(spacing: 12) {
+                VStack(spacing: 12) {
                     AnimatedButton(style: .primary, action: {
+                        HapticFeedback.impact(.medium)
                         showPreview = true
                     }) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             Image(systemName: "eye.fill")
-                            Text("View Website")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Preview Website")
+                                .fontWeight(.semibold)
                         }
                     }
                     
-                    AnimatedButton(style: .secondary, action: {
-                        // Share functionality
-                        shareWebsite(website)
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share")
+                    HStack(spacing: 12) {
+                        AnimatedButton(style: .ghost, action: {
+                            shareWebsite(website)
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "square.and.arrow.up")
+                                Text("Share")
+                            }
+                        }
+                        
+                        AnimatedButton(style: .ghost, action: {
+                            // Create new website
+                            currentWebsite = nil
+                            viewModel.clearMessages()
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus")
+                                Text("Create New")
+                            }
                         }
                     }
                 }
@@ -509,7 +506,7 @@ struct FeatureRow: View {
                 .font(.body)
                 .foregroundColor(.white.opacity(0.8))
             
-            Spacer()
+                Spacer()
         }
     }
 }
