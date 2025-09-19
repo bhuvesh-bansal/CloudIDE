@@ -347,12 +347,12 @@ Project: ${prompt}
 Generate the complete website project now:`;
 
     const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // Reliable and cost-effective
+        model: "gpt-4o-mini", // Large context model for complete sites
         messages: [
-            { role: "system", content: "You are a web developer. You MUST generate COMPLETE working code. NO placeholder comments like '<!-- Header content here -->' or '/* Add CSS here */'. Write ACTUAL HTML content, ACTUAL CSS styles, and ACTUAL JavaScript functions. Fill in ALL content completely." },
+            { role: "system", content: "You are an expert frontend developer. Generate COMPLETE multi-file website projects. Output each file in separate code blocks with filenames. Keep files concise (max 250 lines each). Do not skip or truncate any file. If space runs out, summarize styles but ensure all files are complete." },
             { role: "user", content: systemPrompt }
         ],
-        max_tokens: 4000, // Optimized for complete websites
+        max_tokens: 8000, // Large token limit for complete multi-file sites
         temperature: 0.7   // Balanced creativity
     });
 
@@ -418,19 +418,25 @@ function combineMultiFileResponse(response) {
             return response; // Return original if parsing fails
         }
         
-        // Combine into single HTML file
+        // Extract all HTML files for multi-page detection
+        const allHtmlMatches = response.match(/```html\n(?:\/\/ .*\.html\n)?([\s\S]*?)\n```/g) || [];
+        const pageCount = allHtmlMatches.length;
+        
+        console.log(`📄 Found ${pageCount} HTML pages in AI response`);
+        
+        // Combine into single HTML file (use index.html as primary)
         let combinedHTML = htmlContent;
         
         // Replace CSS link with embedded styles
         if (cssContent) {
-            const cssLink = /<link rel="stylesheet" href="assets\/style\.css">/;
+            const cssLink = /<link rel="stylesheet" href="assets\/style\.css">/g;
             const embeddedCSS = `<style>\n${cssContent}\n    </style>`;
             combinedHTML = combinedHTML.replace(cssLink, embeddedCSS);
         }
         
         // Replace JS script with embedded JavaScript
         if (jsContent) {
-            const jsScript = /<script src="assets\/script\.js"><\/script>/;
+            const jsScript = /<script src="assets\/script\.js"><\/script>/g;
             const embeddedJS = `<script>\n${jsContent}\n    </script>`;
             combinedHTML = combinedHTML.replace(jsScript, embeddedJS);
         }
@@ -438,6 +444,12 @@ function combineMultiFileResponse(response) {
         // Clean up any remaining external references
         combinedHTML = combinedHTML.replace(/href="assets\/style\.css"/g, '');
         combinedHTML = combinedHTML.replace(/src="assets\/script\.js"/g, '');
+        
+        // Add multi-page indicator to the combined HTML
+        if (pageCount > 1) {
+            const multiPageNote = `\n<!-- Multi-page website generated (${pageCount} pages total) -->\n`;
+            combinedHTML = combinedHTML.replace('<body>', '<body>' + multiPageNote);
+        }
         
         console.log('✅ Successfully combined multi-file response into single HTML');
         console.log('   HTML length:', htmlContent.length);
